@@ -1,149 +1,277 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CYBER SHELL - AI Digital Guardian</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://unpkg.com/lucide-static@latest/font/lucide.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYBER SHELL - AI Digital Safety Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* A simple fade-in animation for the result card */
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* A simple spin animation for the loader icon */
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body class="bg-gray-50 font-sans text-gray-900">
-  <!-- Header -->
-  <header class="bg-white shadow-sm sticky top-0 z-50 backdrop-blur-md bg-opacity-80">
-    <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center sm:justify-between items-center">
-      <div class="flex items-center space-x-3">
-        <i data-lucide="shield" class="text-blue-600 w-8 h-8"></i>
-        <h1 class="text-2xl font-bold text-gray-800">CYBER SHELL</h1>
-      </div>
-    </nav>
-  </header>
 
-  <!-- Main Content -->
-  <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-    <!-- Verifier Box -->
-    <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8">
-      <div class="flex justify-center space-x-2 sm:space-x-4 rounded-full bg-gray-100 p-2">
-        <button id="newsBtn" class="flex-1 px-3 py-2 text-sm sm:text-base font-semibold rounded-full bg-blue-600 text-white shadow">News</button>
-        <button id="linkBtn" class="flex-1 px-3 py-2 text-sm sm:text-base font-semibold rounded-full text-gray-600 hover:bg-gray-200">Link</button>
-        <button id="numberBtn" class="flex-1 px-3 py-2 text-sm sm:text-base font-semibold rounded-full text-gray-600 hover:bg-gray-200">Number</button>
-      </div>
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50 backdrop-blur-md bg-opacity-80">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center sm:justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <!-- Inline SVG for Shield Icon -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                <h1 class="text-2xl font-bold text-gray-800">CYBER SHELL</h1>
+            </div>
+        </nav>
+    </header>
 
-      <div class="mt-8 text-center">
-        <h2 id="verifierTitle" class="text-2xl font-bold text-gray-800">Fake News Verifier</h2>
-        <p class="text-gray-600 mt-2">Get instant AI-powered analysis to stay safe.</p>
-      </div>
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <!-- Verifier Section -->
+        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8">
+            <div class="w-full max-w-2xl mx-auto">
+                <!-- Verifier Tabs -->
+                <div id="verifier-tabs" class="flex justify-center space-x-2 sm:space-x-4 rounded-full bg-gray-100 p-2">
+                    <button data-verifier="news" class="verifier-tab flex-1 px-3 py-2 text-sm sm:text-base font-semibold rounded-full transition-colors duration-300 flex items-center justify-center space-x-2 bg-blue-600 text-white shadow">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 20h-4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2H0v-2a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2zm0-4H0V4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12zM5 8h2m-2 4h2m-2 4h2"/></svg>
+                        <span class="hidden sm:inline">News</span>
+                    </button>
+                    <button data-verifier="link" class="verifier-tab flex-1 px-3 py-2 text-sm sm:text-base font-semibold rounded-full transition-colors duration-300 flex items-center justify-center space-x-2 text-gray-600 hover:bg-gray-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"/></svg>
+                        <span class="hidden sm:inline">Link</span>
+                    </button>
+                    <button data-verifier="number" class="verifier-tab flex-1 px-3 py-2 text-sm sm:text-base font-semibold rounded-full transition-colors duration-300 flex items-center justify-center space-x-2 text-gray-600 hover:bg-gray-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        <span class="hidden sm:inline">Number</span>
+                    </button>
+                </div>
+                
+                <div class="mt-8 text-center">
+                    <h2 id="verifier-title" class="text-2xl font-bold text-gray-800">Fake News Verifier</h2>
+                    <p class="text-gray-600 mt-2">Get instant AI-powered analysis to stay safe.</p>
+                </div>
 
-      <form id="verifierForm" class="mt-6">
-        <div class="relative">
-          <input
-            id="inputField"
-            type="text"
-            placeholder="Enter a news headline or claim..."
-            class="w-full px-4 py-3 pr-24 sm:pr-28 rounded-full border-2 border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-300"
-          />
-          <button
-            type="submit"
-            class="absolute right-1.5 top-1.5 px-4 sm:px-6 py-2 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors duration-300"
-          >
-            Verify
-          </button>
+                <form id="verifier-form" class="mt-6">
+                    <div class="relative">
+                        <input id="verifier-input" type="text" placeholder="Enter a news headline or claim..." class="w-full px-4 py-3 pr-24 sm:pr-28 rounded-full border-2 border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-300" />
+                        <button id="verify-button" type="submit" class="absolute right-1.5 top-1.5 px-4 sm:px-6 py-2 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors duration-300 flex items-center">
+                            Verify
+                        </button>
+                    </div>
+                </form>
+
+                <div id="loader" class="text-center mt-6 justify-center items-center text-gray-600 hidden">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-spin h-5 w-5 mr-2 inline-block"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                    Checking...
+                </div>
+
+                <div id="result-container"></div>
+            </div>
         </div>
-      </form>
-
-      <div id="resultBox" class="mt-6 hidden rounded-lg border-l-4 p-4 sm:p-6 shadow-md animate-fade-in"></div>
-    </div>
-
-    <!-- Knowledge Hub -->
-    <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg">
-      <h3 class="text-2xl font-bold text-gray-800 mb-4">Before a Scam (Prevention Tips)</h3>
-      <ul class="space-y-3 text-gray-700">
-        <li>✔ Verify news from multiple trusted sources before sharing.</li>
-        <li>✔ Never click on links from unknown or suspicious senders.</li>
-        <li>✔ Enable Two-Factor Authentication (2FA) on all your accounts.</li>
-        <li>✔ Use strong, unique passwords for different websites.</li>
-        <li>✔ Be wary of offers that seem too good to be true.</li>
-      </ul>
-
-      <h3 class="text-2xl font-bold text-gray-800 mt-8 mb-4">After a Scam (Action Steps)</h3>
-      <ul class="space-y-3 text-gray-700">
-        <li>🚫 Block the number/sender and report it on the platform.</li>
-        <li>🚫 Contact your bank if you’ve shared financial details.</li>
-        <li>🚫 Report the incident on <a href="https://cybercrime.gov.in" target="_blank" class="text-blue-600 underline">cybercrime.gov.in</a>.</li>
-        <li>🚫 File an FIR at your nearest police station if serious.</li>
-        <li>🚫 Inform friends & family so they don’t fall for the same scam.</li>
-      </ul>
-    </div>
-  </main>
-
-  <!-- Footer -->
-  <footer class="text-center py-6 text-sm text-gray-500">
-    <p>&copy; <span id="year"></span> CYBER SHELL. All Rights Reserved.</p>
-    <p class="mt-1">Your AI-Powered Digital Guardian.</p>
-  </footer>
-
-  <!-- Script -->
-  <script src="https://unpkg.com/lucide-static@latest"></script>
-  <script>
-    lucide.createIcons();
-    document.getElementById("year").innerText = new Date().getFullYear();
-
-    let activeVerifier = "news";
-    const inputField = document.getElementById("inputField");
-    const resultBox = document.getElementById("resultBox");
-    const verifierTitle = document.getElementById("verifierTitle");
-
-    const verifiers = {
-      news: { title: "Fake News Verifier", placeholder: "Enter a news headline or claim..." },
-      link: { title: "Phishing Link Checker", placeholder: "Paste a suspicious URL..." },
-      number: { title: "Scam Number Checker", placeholder: "Enter a phone number with country code..." }
-    };
-
-    function setVerifier(type) {
-      activeVerifier = type;
-      verifierTitle.textContent = verifiers[type].title;
-      inputField.placeholder = verifiers[type].placeholder;
-      resultBox.classList.add("hidden");
-    }
-
-    document.getElementById("newsBtn").onclick = () => setVerifier("news");
-    document.getElementById("linkBtn").onclick = () => setVerifier("link");
-    document.getElementById("numberBtn").onclick = () => setVerifier("number");
-
-    document.getElementById("verifierForm").addEventListener("submit", function(e) {
-      e.preventDefault();
-      const value = inputField.value.trim();
-      if (!value) return;
-      
-      let result = {};
-      if (activeVerifier === "news") {
-        result = {status: "danger", title: "LIKELY FAKE NEWS", explanation: "This is a demo check. Real API integration required.", advice: "Do not share until verified."};
-      } else if (activeVerifier === "link") {
-        result = {status: "safe", title: "URL SEEMS SAFE", explanation: "This is a demo check. Real API integration required.", advice: "Be cautious with unknown links."};
-      } else if (activeVerifier === "number") {
-        result = {status: "warning", title: "POSSIBLE SCAM NUMBER", explanation: "This is a demo check. Real API integration required.", advice: "Avoid interacting with unknown numbers."};
-      }
-
-      let border = result.status === "safe" ? "border-green-500 bg-green-50 text-green-800"
-                 : result.status === "warning" ? "border-yellow-500 bg-yellow-50 text-yellow-800"
-                 : "border-red-500 bg-red-50 text-red-800";
-
-      resultBox.className = `mt-6 rounded-lg border-l-4 p-4 sm:p-6 shadow-md animate-fade-in ${border}`;
-      resultBox.innerHTML = `
-        <p class="text-lg font-bold">${result.title}</p>
-        <p class="mt-2 text-sm">${result.explanation}</p>
-        <div class="mt-4">
-          <p class="text-sm font-semibold">User Advice:</p>
-          <p class="text-sm">${result.advice}</p>
+        
+        <!-- Knowledge Hub Section -->
+        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg">
+            <div class="space-y-12">
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Before a Scam (Prevention Tips)</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-green-500 mt-1 flex-shrink-0"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="ml-2 text-gray-700">Verify news from multiple trusted sources before sharing.</span></li>
+                        <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-green-500 mt-1 flex-shrink-0"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="ml-2 text-gray-700">Never click on links from unknown or suspicious senders.</span></li>
+                        <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-green-500 mt-1 flex-shrink-0"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="ml-2 text-gray-700">Enable Two-Factor Authentication (2FA) on all your accounts.</span></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">After a Scam (Action Steps)</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-red-500 mt-1 flex-shrink-0"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="ml-2 text-gray-700">Immediately block the number/sender and report it on the platform.</span></li>
+                        <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-red-500 mt-1 flex-shrink-0"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="ml-2 text-gray-700">Contact your bank if you've shared financial details.</span></li>
+                        <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-red-500 mt-1 flex-shrink-0"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="ml-2 text-gray-700">Report the incident on the National Cyber Crime Reporting Portal (cybercrime.gov.in).</span></li>
+                    </ul>
+                </div>
+            </div>
         </div>
-        <p class="mt-4 text-xs">Source: CYBER SHELL (Demo)</p>
-      `;
-      resultBox.classList.remove("hidden");
-    });
-  </script>
+    </main>
 
-  <style>
-    .animate-fade-in { animation: fadeIn 0.5s ease-in-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px);} to { opacity: 1; transform: translateY(0);} }
-  </style>
+    <!-- Footer -->
+    <footer class="text-center py-6 text-sm text-gray-500">
+        <p>&copy; 2025 CYBER SHELL. All Rights Reserved.</p>
+        <p class="mt-1">Your AI-Powered Digital Guardian.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- API Keys ---
+            const GOOGLE_API_KEY = "AIzaSyC-4MCDR3MJpk9vhSRjyMT5JfL3H87Z5Mw";
+            const VT_API_KEY = "28c4f3a8c5b438b7d859d68fa122fbf5bb5b41c2f64a1ee13e155bde67a3353c";
+            const NUMVERIFY_API_KEY = "d3bdd32dab5b2569c23c733045e1b653";
+            const FAKE_NEWS_API_ENDPOINT = "https://harismusa-claimcracker.hf.space/predict";
+
+            // --- Verifier Definitions ---
+            const verifiers = {
+                news: {
+                    title: 'Fake News Verifier',
+                    placeholder: 'Enter a news headline or claim...',
+                    api: checkFakeNewsAPI
+                },
+                link: {
+                    title: 'Phishing Link Checker',
+                    placeholder: 'Paste a suspicious URL...',
+                    api: checkLinkAPI
+                },
+                number: {
+                    title: 'Scam Number Checker',
+                    placeholder: 'Enter a phone number with country code...',
+                    api: checkNumberAPI
+                }
+            };
+            
+            let activeVerifier = 'news';
+
+            // --- DOM Elements ---
+            const verifierTabs = document.getElementById('verifier-tabs');
+            const verifierTitle = document.getElementById('verifier-title');
+            const verifierInput = document.getElementById('verifier-input');
+            const verifierForm = document.getElementById('verifier-form');
+            const verifyButton = document.getElementById('verify-button');
+            const loader = document.getElementById('loader');
+            const resultContainer = document.getElementById('result-container');
+
+            // --- API Functions ---
+            async function checkFakeNewsAPI(claim) {
+                try {
+                    const response = await fetch(FAKE_NEWS_API_ENDPOINT, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: claim }),
+                    });
+                    if (!response.ok) throw new Error('API response not OK');
+                    const data = await response.json();
+                    const label = data.label.toLowerCase();
+
+                    if (label.includes("false")) return { status: 'danger', title: 'LIKELY FAKE NEWS', explanation: 'Our AI analysis indicates this claim shares characteristics with known misinformation.', advice: 'Do not share this information. Always verify sensational news from multiple official sources.', source: 'ClaimCracker AI' };
+                    return { status: 'safe', title: 'LIKELY FACTUAL', explanation: 'The claim appears to be consistent with information from known sources.', advice: 'No immediate red flags detected, but it\'s always good practice to consult diverse sources.', source: 'ClaimCracker AI' };
+                } catch (error) {
+                    return { status: 'warning', title: 'ANALYSIS INCONCLUSIVE', explanation: 'Could not connect to the news verification service. Please try again later.', advice: 'When in doubt, refrain from sharing and consult trusted news websites directly.', source: 'ClaimCracker AI' };
+                }
+            }
+
+            async function checkLinkAPI(url) {
+                let googleResult = { safe: true };
+                try {
+                    const googleRes = await fetch(`https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${GOOGLE_API_KEY}`, {
+                        method: 'POST',
+                        body: JSON.stringify({ client: { clientId: "cybershell", clientVersion: "1.0.0" }, threatInfo: { threatTypes: ["MALWARE", "SOCIAL_ENGINEERING", "UNWANTED_SOFTWARE"], platformTypes: ["ANY_PLATFORM"], threatEntryTypes: ["URL"], threatEntries: [{ url }] } })
+                    });
+                    const googleData = await googleRes.json();
+                    if (googleData.matches) googleResult = { safe: false, threatType: googleData.matches[0].threatType };
+                } catch (e) { console.error("Google Safe Browsing Error:", e); }
+
+                let vtResult = { malicious: 0 };
+                try {
+                    const vtUrlId = btoa(url).replace(/=/g, '');
+                    const vtRes = await fetch(`https://www.virustotal.com/api/v3/urls/${vtUrlId}`, { headers: { 'x-apikey': VT_API_KEY } });
+                    if (vtRes.ok) {
+                        const vtData = await vtRes.json();
+                        vtResult.malicious = vtData.data.attributes.last_analysis_stats.malicious;
+                    }
+                } catch (e) { console.error("VirusTotal Error:", e); }
+
+                if (!googleResult.safe || vtResult.malicious > 0) return { status: 'danger', title: 'PHISHING/MALICIOUS LINK DETECTED', explanation: `This URL is flagged as dangerous. ${!googleResult.safe ? `Google Threat: ${googleResult.threatType}.` : ''} ${vtResult.malicious > 0 ? `VirusTotal vendors flagged: ${vtResult.malicious}.` : ''}`, advice: 'Do not visit this link. Block the sender.', source: 'Google Safe Browsing & VirusTotal' };
+                if (url.includes("bit.ly") || url.includes("tinyurl")) return { status: 'warning', title: 'URL SHORTENER USED', explanation: 'This link uses a shortener, which can hide the true destination. Exercise caution.', advice: 'Be extra careful when clicking on shortened links from unknown senders.', source: 'URL Analysis' };
+                return { status: 'safe', title: 'URL SEEMS SAFE', explanation: 'No malicious activity detected for this URL.', advice: 'The link appears safe, but always be cautious of unexpected downloads.', source: 'Google Safe Browsing & VirusTotal' };
+            }
+
+            async function checkNumberAPI(number) {
+                 try {
+                    const response = await fetch(`http://apilayer.net/api/validate?access_key=${NUMVERIFY_API_KEY}&number=${number}`);
+                    const data = await response.json();
+                    if (data.valid) return { status: 'safe', title: 'NUMBER SEEMS VALID', explanation: `Valid phone number from ${data.country_name}, carrier: ${data.carrier}.`, advice: 'While valid, this does not guarantee the caller is legitimate. Be cautious.', source: 'Number Verification API' };
+                    return { status: 'danger', title: 'INVALID OR SCAM NUMBER', explanation: 'This phone number appears invalid or is from a high-risk category.', advice: 'Do not answer or call back. Block this number.', source: 'Number Verification API' };
+                } catch (e) {
+                    return { status: 'warning', title: 'ANALYSIS INCONCLUSIVE', explanation: 'Could not connect to the number verification service.', advice: 'If unsure, it is safest not to interact with the number.', source: 'Number Verification API' };
+                }
+            }
+            
+            // --- Event Listeners ---
+            verifierTabs.addEventListener('click', (e) => {
+                const button = e.target.closest('.verifier-tab');
+                if (!button) return;
+
+                activeVerifier = button.dataset.verifier;
+                
+                // Update UI
+                document.querySelectorAll('.verifier-tab').forEach(tab => {
+                    tab.classList.remove('bg-blue-600', 'text-white', 'shadow');
+                    tab.classList.add('text-gray-600', 'hover:bg-gray-200');
+                });
+                button.classList.add('bg-blue-600', 'text-white', 'shadow');
+                button.classList.remove('text-gray-600', 'hover:bg-gray-200');
+
+                verifierTitle.textContent = verifiers[activeVerifier].title;
+                verifierInput.placeholder = verifiers[activeVerifier].placeholder;
+                verifierInput.value = '';
+                resultContainer.innerHTML = '';
+            });
+
+            verifierForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const inputValue = verifierInput.value.trim();
+                if (!inputValue) return;
+
+                loader.style.display = 'flex';
+                verifyButton.disabled = true;
+                verifyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-spin h-5 w-5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`;
+                resultContainer.innerHTML = '';
+
+                const apiFunction = verifiers[activeVerifier].api;
+                const result = await apiFunction(inputValue);
+                
+                renderResultCard(result);
+
+                loader.style.display = 'none';
+                verifyButton.disabled = false;
+                verifyButton.textContent = 'Verify';
+            });
+
+            function renderResultCard(result) {
+                const configs = {
+                    safe: { icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-green-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`, classes: 'border-green-500 bg-green-50 text-green-800' },
+                    warning: { icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-yellow-500"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>`, classes: 'border-yellow-500 bg-yellow-50 text-yellow-800' },
+                    danger: { icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-red-500"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>`, classes: 'border-red-500 bg-red-50 text-red-800' }
+                };
+                const config = configs[result.status];
+                const cardHTML = `
+                    <div class="mt-6 rounded-lg border-l-4 p-4 sm:p-6 shadow-md animate-fade-in ${config.classes}">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">${config.icon}</div>
+                            <div class="ml-4 flex-1">
+                                <p class="text-lg font-bold ${config.classes}">${result.title}</p>
+                                <p class="mt-2 text-sm text-gray-700">${result.explanation}</p>
+                                <div class="mt-4">
+                                    <p class="text-sm font-semibold text-gray-800">User Advice:</p>
+                                    <p class="text-sm text-gray-600">${result.advice}</p>
+                                </div>
+                                <p class="mt-4 text-xs text-gray-500">Source: ${result.source}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                resultContainer.innerHTML = cardHTML;
+            }
+        });
+    </script>
 </body>
 </html>
+
