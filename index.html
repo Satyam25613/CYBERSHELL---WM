@@ -1,0 +1,466 @@
+import React, { useState, useEffect } from 'react';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, limit } from 'firebase/firestore';
+import { Shield, Link, Phone, Newspaper, AlertTriangle, CheckCircle, XCircle, ChevronRight } from 'lucide-react';
+
+// --- Firebase Configuration ---
+// IMPORTANT: Replace with your actual Firebase project configuration
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+// --- API Key Placeholders ---
+// These are kept here for clarity but are used in the backend functions.
+// In a real production app, these would be environment variables on a server.
+const GOOGLE_API_KEY = "AIzaSyC-4MCDR3MJpk9vhSRjyMT5JfL3H87Z5Mw";
+const VT_API_KEY = "28c4f3a8c5b438b7d859d68fa122fbf5bb5b41c2f64a1ee13e155bde67a3353c";
+const NUMVERIFY_API_KEY = "d3bdd32dab5b2569c23c733045e1b653";
+const FAKE_NEWS_API_ENDPOINT = "https://harismusa-claimcracker.hf.space/predict"; // Placeholder
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// --- Mock API Functions ---
+// In a real app, these functions would be on a secure backend server to protect your API keys.
+const checkFakeNewsAPI = async (claim) => {
+    // Simulating API call
+    console.log(`Checking news claim: ${claim}`);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    if (claim.toLowerCase().includes("unesco") && claim.toLowerCase().includes("anthem")) {
+        return {
+            status: 'danger',
+            title: 'FAKE NEWS',
+            explanation: 'This is a long-running hoax that resurfaces periodically.',
+            advice: 'Always verify such sensational news from official sources before sharing.',
+            source: 'ClaimCracker API (Simulated)'
+        };
+    }
+    if (claim.toLowerCase().includes("modi")) {
+         return {
+            status: 'warning',
+            title: 'POTENTIALLY MISLEADING',
+            explanation: 'Political claims are often complex and may lack context. This has been flagged as needing further verification.',
+            advice: 'Consult multiple reputable news outlets for a balanced view.',
+            source: 'ClaimCracker API (Simulated)'
+        };
+    }
+    return {
+        status: 'safe',
+        title: 'LIKELY FACTUAL',
+        explanation: 'The claim appears to be consistent with information from known sources.',
+        advice: 'No immediate red flags, but it\'s always good practice to read from diverse sources.',
+        source: 'ClaimCracker API (Simulated)'
+    };
+};
+
+const checkLinkAPI = async (url) => {
+    console.log(`Checking URL: ${url}`);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    if (url.includes("free-money") || url.includes("totally-legit-login.com")) {
+        return {
+            status: 'danger',
+            title: 'PHISHING LINK DETECTED',
+            explanation: 'This URL is flagged by multiple security vendors for malicious activity and phishing attempts.',
+            advice: 'Do not visit this link. Do not enter any personal information. Block the sender.',
+            source: 'VirusTotal & Google Safe Browsing (Simulated)'
+        };
+    }
+     if (url.includes("bit.ly") || url.includes("tinyurl")) {
+        return {
+            status: 'warning',
+            title: 'URL SHORTENER USED',
+            explanation: 'This link uses a shortener, which can hide the true destination. Exercise caution.',
+            advice: 'Be extra careful when clicking on shortened links, especially from unknown senders.',
+            source: 'URL Analysis (Simulated)'
+        };
+    }
+    return {
+        status: 'safe',
+        title: 'URL SEEMS SAFE',
+        explanation: 'No malicious activity has been detected for this URL by our security partners.',
+        advice: 'The link appears safe, but always be cautious of unexpected downloads or requests for personal information.',
+        source: 'VirusTotal & Google Safe Browsing (Simulated)'
+    };
+};
+
+const checkNumberAPI = async (number) => {
+    console.log(`Checking number: ${number}`);
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    if (number.match(/(\d)\1{6,}/)) { // Matches numbers with 7 or more repeating digits
+        return {
+            status: 'danger',
+            title: 'KNOWN SCAM NUMBER',
+            explanation: 'This phone number has been repeatedly reported for fraudulent activities, including lottery scams and fake KYC updates.',
+            advice: 'Do not answer calls from this number. Block it immediately and do not share any personal information.',
+            source: 'Scam Number Database (Simulated)'
+        };
+    }
+    if(number.startsWith('+1') || number.startsWith('+44')){
+        return {
+            status: 'warning',
+            title: 'INTERNATIONAL NUMBER',
+            explanation: 'This is an international number. Scammers often use foreign numbers for OTP and lottery frauds.',
+            advice: 'Be cautious if you are not expecting a call from this country. Do not share OTPs or financial details.',
+            source: 'Number Analysis (Simulated)'
+        };
+    }
+    return {
+        status: 'safe',
+        title: 'NUMBER NOT FLAGGED',
+        explanation: 'This number has not been found in our database of scam reports.',
+        advice: 'No suspicious activity is reported, but always be cautious with unsolicited calls.',
+        source: 'Scam Number Database (Simulated)'
+    };
+};
+
+
+// --- UI Components ---
+
+const ResultCard = ({ result }) => {
+    if (!result) return null;
+
+    const config = {
+        safe: {
+            bgColor: 'bg-green-100',
+            borderColor: 'border-green-500',
+            textColor: 'text-green-800',
+            icon: <CheckCircle className="h-8 w-8 text-green-500" />
+        },
+        warning: {
+            bgColor: 'bg-yellow-100',
+            borderColor: 'border-yellow-500',
+            textColor: 'text-yellow-800',
+            icon: <AlertTriangle className="h-8 w-8 text-yellow-500" />
+        },
+        danger: {
+            bgColor: 'bg-red-100',
+            borderColor: 'border-red-500',
+            textColor: 'text-red-800',
+            icon: <XCircle className="h-8 w-8 text-red-500" />
+        }
+    };
+
+    const { bgColor, borderColor, textColor, icon } = config[result.status];
+
+    return (
+        <div className={`mt-6 rounded-lg border-l-4 ${borderColor} ${bgColor} p-4 sm:p-6 shadow-md animate-fade-in`}>
+            <div className="flex items-start">
+                <div className="flex-shrink-0">{icon}</div>
+                <div className="ml-4 flex-1">
+                    <p className={`text-lg font-bold ${textColor}`}>{result.title}</p>
+                    <p className="mt-2 text-sm text-gray-700">{result.explanation}</p>
+                    <div className="mt-4">
+                        <p className="text-sm font-semibold text-gray-800">User Advice:</p>
+                        <p className="text-sm text-gray-600">{result.advice}</p>
+                    </div>
+                    <p className="mt-4 text-xs text-gray-500">Source: {result.source}</p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const Verifier = () => {
+    const [activeVerifier, setActiveVerifier] = useState('news');
+    const [inputValue, setInputValue] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [result, setResult] = useState(null);
+
+    const verifiers = {
+        news: {
+            icon: <Newspaper />,
+            title: 'Fake News Verifier',
+            placeholder: 'Enter a news headline or claim...',
+            api: checkFakeNewsAPI
+        },
+        link: {
+            icon: <Link />,
+            title: 'Phishing Link Checker',
+            placeholder: 'Paste a suspicious URL...',
+            api: checkLinkAPI
+        },
+        number: {
+            icon: <Phone />,
+            title: 'Scam Number Checker',
+            placeholder: 'Enter a phone number with country code...',
+            api: checkNumberAPI
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!inputValue.trim()) return;
+        setIsLoading(true);
+        setResult(null);
+        const currentVerifier = verifiers[activeVerifier];
+        const apiResult = await currentVerifier.api(inputValue);
+        setResult(apiResult);
+        setIsLoading(false);
+    };
+
+    const verifierConfig = verifiers[activeVerifier];
+
+    return (
+        <div className="w-full max-w-2xl mx-auto">
+            <div className="flex justify-center space-x-2 sm:space-x-4 rounded-full bg-gray-100 p-2">
+                {Object.keys(verifiers).map(key => (
+                    <button
+                        key={key}
+                        onClick={() => { setActiveVerifier(key); setResult(null); setInputValue(''); }}
+                        className={`flex-1 px-3 py-2 text-sm sm:text-base font-semibold rounded-full transition-colors duration-300 flex items-center justify-center space-x-2 ${activeVerifier === key ? 'bg-blue-600 text-white shadow' : 'text-gray-600 hover:bg-gray-200'}`}
+                    >
+                        {verifiers[key].icon}
+                        <span className="hidden sm:inline">{verifiers[key].title.split(' ')[0]}</span>
+                    </button>
+                ))}
+            </div>
+
+            <div className="mt-8 text-center">
+                <h2 className="text-2xl font-bold text-gray-800">{verifierConfig.title}</h2>
+                <p className="text-gray-600 mt-2">Get instant AI-powered analysis to stay safe.</p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="mt-6">
+                <div className="relative">
+                    <input
+                        type="text"
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        placeholder={verifierConfig.placeholder}
+                        className="w-full px-4 py-3 pr-20 rounded-full border-2 border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-300"
+                    />
+                    <button
+                        type="submit"
+                        disabled={isLoading}
+                        className="absolute right-1.5 top-1.5 px-6 py-2 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors duration-300 disabled:bg-blue-300"
+                    >
+                        {isLoading ? '...' : 'Verify'}
+                    </button>
+                </div>
+            </form>
+
+            {isLoading && <div className="text-center mt-6">Checking...</div>}
+            <ResultCard result={result} />
+        </div>
+    );
+};
+
+const KnowledgeHub = () => {
+    const preventionTips = [
+        "Verify news from multiple trusted sources before sharing.",
+        "Never click on links from unknown or suspicious senders.",
+        "Enable Two-Factor Authentication (2FA) on all your accounts.",
+        "Use strong, unique passwords for different websites.",
+        "Be wary of offers that seem too good to be true."
+    ];
+    const actionSteps = [
+        "Immediately block the number/sender and report it on the platform.",
+        "Contact your bank or financial institution if you've shared financial details.",
+        "Report the incident on the National Cyber Crime Reporting Portal (cybercrime.gov.in).",
+        "For serious financial fraud, file a First Information Report (FIR) at your nearest police station.",
+        "Inform your friends and family to prevent them from falling for the same scam."
+    ];
+
+    return (
+        <div className="space-y-12">
+            <div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-4">Before a Scam (Prevention Tips)</h3>
+                <ul className="space-y-3">
+                    {preventionTips.map((tip, i) => (
+                        <li key={i} className="flex items-start">
+                            <ChevronRight className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
+                            <span className="ml-2 text-gray-700">{tip}</span>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+            <div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-4">After a Scam (Action Steps)</h3>
+                <ul className="space-y-3">
+                    {actionSteps.map((step, i) => (
+                        <li key={i} className="flex items-start">
+                            <ChevronRight className="h-5 w-5 text-red-500 mt-1 flex-shrink-0" />
+                            <span className="ml-2 text-gray-700">{step}</span>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </div>
+    );
+};
+
+const ReportScam = () => {
+    const [scamType, setScamType] = useState('link');
+    const [reportValue, setReportValue] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+    const [trendingScams, setTrendingScams] = useState([]);
+
+    useEffect(() => {
+        const q = query(collection(db, "scamReports"), orderBy("timestamp", "desc"), limit(5));
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const scams = [];
+            querySnapshot.forEach((doc) => {
+                scams.push({ id: doc.id, ...doc.data() });
+            });
+            setTrendingScams(scams);
+        });
+        return () => unsubscribe();
+    }, []);
+
+    const handleReportSubmit = async (e) => {
+        e.preventDefault();
+        if (!reportValue.trim()) return;
+        setIsSubmitting(true);
+        try {
+            await addDoc(collection(db, "scamReports"), {
+                type: scamType,
+                value: reportValue,
+                timestamp: new Date()
+            });
+            setSubmitted(true);
+            setReportValue('');
+        } catch (error) {
+            console.error("Error adding document: ", error);
+        }
+        setIsSubmitting(false);
+    };
+
+    return (
+        <div className="grid md:grid-cols-3 gap-12">
+            <div className="md:col-span-2">
+                <h3 className="text-2xl font-bold text-gray-800 mb-4">Report a Scam</h3>
+                <p className="text-gray-600 mb-6">Help the community by reporting suspicious activity. Your report is anonymous.</p>
+                {submitted ? (
+                     <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-md" role="alert">
+                        <p className="font-bold">Thank you!</p>
+                        <p>Your report has been submitted and will help protect others.</p>
+                    </div>
+                ) : (
+                    <form onSubmit={handleReportSubmit} className="space-y-4">
+                         <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Type of Scam</label>
+                            <select value={scamType} onChange={(e) => setScamType(e.target.value)} className="w-full p-2 border border-gray-300 rounded-md">
+                                <option value="link">Phishing Link</option>
+                                <option value="number">Scam Number</option>
+                                <option value="news">Fake News/Claim</option>
+                            </select>
+                        </div>
+                        <div>
+                             <label className="block text-sm font-medium text-gray-700 mb-2">Suspicious Link / Number / Claim</label>
+                            <textarea
+                                value={reportValue}
+                                onChange={(e) => setReportValue(e.target.value)}
+                                rows="3"
+                                placeholder={`Enter the suspicious ${scamType} here...`}
+                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                            ></textarea>
+                        </div>
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="w-full bg-red-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-red-700 transition-colors disabled:bg-red-300"
+                        >
+                            {isSubmitting ? 'Submitting...' : 'Report Anonymously'}
+                        </button>
+                    </form>
+                )}
+            </div>
+            <div className="md:col-span-1">
+                 <h3 className="text-2xl font-bold text-gray-800 mb-4">Trending Scams</h3>
+                 <div className="space-y-3">
+                    {trendingScams.length > 0 ? trendingScams.map(scam => (
+                        <div key={scam.id} className="bg-gray-100 p-3 rounded-md text-sm">
+                            <p className="font-semibold text-gray-800 capitalize">{scam.type}</p>
+                            <p className="text-gray-600 truncate">{scam.value}</p>
+                        </div>
+                    )) : <p className="text-gray-500">No reports yet.</p>}
+                 </div>
+            </div>
+        </div>
+    );
+};
+
+const About = () => (
+     <div className="space-y-6 text-gray-700">
+        <p><strong>CYBER SHELL</strong> is an AI-powered digital safety platform designed for India. Our mission is to empower citizens with the tools and knowledge to navigate the digital world safely and confidently.</p>
+        <p>In an era of increasing online fraud, misinformation, and phishing attacks, we provide a first line of defense, helping you verify information before you trust it. By using cutting-edge AI and community-powered reporting, we aim to create a safer digital ecosystem for everyone.</p>
+        <p className="text-sm text-gray-500 p-4 bg-gray-100 rounded-md">
+            <strong>Disclaimer:</strong> The results provided by CYBER SHELL are for informational and awareness purposes only. They do not constitute legal evidence. While we strive for accuracy, users should always exercise their own judgment and consult with authorities for legal matters.
+        </p>
+    </div>
+);
+
+// --- Main App Component ---
+
+export default function App() {
+    const [activeTab, setActiveTab] = useState('verify');
+
+    const tabs = {
+        verify: { label: 'Verify', component: <Verifier /> },
+        hub: { label: 'Knowledge Hub', component: <KnowledgeHub /> },
+        report: { label: 'Report Scam', component: <ReportScam /> },
+        about: { label: 'About', component: <About /> }
+    };
+
+    return (
+        <div className="bg-gray-50 min-h-screen font-sans text-gray-900">
+            <header className="bg-white shadow-sm">
+                <nav className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                    <div className="flex items-center space-x-3">
+                        <Shield className="h-8 w-8 text-blue-600" />
+                        <h1 className="text-2xl font-bold text-gray-800">CYBER SHELL</h1>
+                    </div>
+                    <div className="hidden md:flex space-x-2">
+                        {Object.keys(tabs).map(key => (
+                             <button
+                                key={key}
+                                onClick={() => setActiveTab(key)}
+                                className={`px-4 py-2 rounded-md font-semibold text-sm transition-colors duration-200 ${activeTab === key ? 'bg-blue-100 text-blue-700' : 'text-gray-600 hover:bg-gray-100'}`}
+                             >
+                                {tabs[key].label}
+                             </button>
+                        ))}
+                    </div>
+                    <div className="md:hidden">
+                        <select onChange={(e) => setActiveTab(e.target.value)} value={activeTab} className="p-2 border rounded-md">
+                           {Object.keys(tabs).map(key => (
+                                <option key={key} value={key}>{tabs[key].label}</option>
+                           ))}
+                        </select>
+                    </div>
+                </nav>
+            </header>
+
+            <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+                <div className="bg-white p-6 sm:p-8 rounded-xl shadow-lg">
+                    {tabs[activeTab].component}
+                </div>
+            </main>
+
+             <footer className="text-center py-6 text-sm text-gray-500">
+                <p>&copy; {new Date().getFullYear()} CYBER SHELL. All Rights Reserved.</p>
+                <p className="mt-1">Your AI-Powered Digital Guardian.</p>
+            </footer>
+             <style>{`
+                .animate-fade-in {
+                    animation: fadeIn 0.5s ease-in-out;
+                }
+                @keyframes fadeIn {
+                    from { opacity: 0; transform: translateY(10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+            `}</style>
+        </div>
+    );
+}
+
