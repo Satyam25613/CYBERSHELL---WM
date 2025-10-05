@@ -71,6 +71,8 @@
                         </button>
                     </div>
                 </form>
+                <p id="error-message" class="text-red-500 text-sm mt-2 text-center h-4"></p>
+
 
                 <div id="loader" class="text-center mt-6 justify-center items-center text-gray-600 hidden">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-spin h-5 w-5 mr-2 inline-block"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
@@ -112,34 +114,37 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Note: API keys are included for simplicity in this demo file.
-            // In a real production app, these should be handled via a secure backend.
-            const GOOGLE_API_KEY = "AIzaSyC-4MCDR3MJpk9vhSRjyMT5JfL3H87Z5Mw";
+            const GEMINI_API_KEY = "";
+            const SAFE_BROWSING_API_KEY = "AIzaSyC-4MCDR3MJpk9vhSRjyMT5JfL3H87Z5Mw";
             const VT_API_KEY = "28c4f3a8c5b438b7d859d68fa122fbf5bb5b41c2f64a1ee13e155bde67a3353c";
             const NUMVERIFY_API_KEY = "d3bdd32dab5b2569c23c733045e1b653";
 
-            // --- Verifier Definitions ---
             const verifiers = {
                 news: {
                     title: 'Fake News Verifier',
                     placeholder: 'Enter a news headline or claim...',
-                    api: checkFakeNewsAPI
+                    api: checkFakeNewsAPI,
+                    validation: (input) => input.length > 5,
+                    errorMessage: 'Please enter a meaningful claim or headline.'
                 },
                 link: {
                     title: 'Phishing Link Checker',
                     placeholder: 'Paste a suspicious URL...',
-                    api: checkLinkAPI
+                    api: checkLinkAPI,
+                    validation: (input) => /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/.test(input),
+                    errorMessage: 'Please enter a valid URL (e.g., example.com).'
                 },
                 number: {
                     title: 'Scam Number Checker',
                     placeholder: 'Enter a phone number with country code...',
-                    api: checkNumberAPI
+                    api: checkNumberAPI,
+                    validation: (input) => /^\+?[1-9]\d{7,14}$/.test(input.replace(/\s/g, '')),
+                    errorMessage: 'Please enter a valid phone number with country code.'
                 }
             };
             
             let activeVerifier = 'news';
 
-            // --- DOM Elements ---
             const verifierTabs = document.getElementById('verifier-tabs');
             const verifierTitle = document.getElementById('verifier-title');
             const verifierInput = document.getElementById('verifier-input');
@@ -147,32 +152,51 @@
             const verifyButton = document.getElementById('verify-button');
             const loader = document.getElementById('loader');
             const resultContainer = document.getElementById('result-container');
+            const errorMessage = document.getElementById('error-message');
 
-            // --- API Functions (Simulated/Fixed) ---
-
-            // FIX: Replaced non-working API with a reliable mock function for demonstration.
             async function checkFakeNewsAPI(claim) {
-                await new Promise(resolve => setTimeout(resolve, 800)); // Simulate network delay
-                const lowerCaseClaim = claim.toLowerCase();
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
+                
+                const systemPrompt = `You are an extremely meticulous and strict fact-checker. Your task is to analyze a news headline or claim. You must be very cautious and avoid making definitive statements unless the evidence is overwhelming from multiple, highly reputable sources. Respond ONLY with a JSON object following this schema: {"status": "verified_true" | "verified_false" | "inconclusive", "title": "string", "explanation": "string", "advice": "string"}.
+- Use 'verified_true' ONLY if the claim is 100% factually correct and confirmed by multiple authoritative sources (e.g., major international news agencies, scientific consensus). The title should be 'VERIFIED TRUE'.
+- Use 'verified_false' if there is ANY doubt, any misleading element, or if it's a known hoax. Even a 1% fault means it's false. The title should be 'VERIFIED FALSE'.
+- Use 'inconclusive' for opinions, subjective claims, or topics where reputable sources disagree or lack sufficient information to make a definitive judgment. The title should be 'INCONCLUSIVE'.
+Your explanation must be concise and your advice direct.`;
 
-                if (lowerCaseClaim.includes("unesco") && lowerCaseClaim.includes("anthem")) {
-                    return { status: 'danger', title: 'FAKE NEWS', explanation: 'This is a long-running hoax. UNESCO does not issue such declarations.', advice: 'Always verify sensational news from official sources before sharing.', source: 'AI Analysis (Simulated)' };
+                const payload = {
+                    contents: [{ parts: [{ text: `Fact-check this claim: "${claim}"` }] }],
+                    tools: [{ "google_search": {} }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                };
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
+                    const result = await response.json();
+                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (!text) throw new Error("Invalid response from AI.");
+                    
+                    const jsonMatch = text.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        const parsedJson = JSON.parse(jsonMatch[0]);
+                        return { ...parsedJson, source: 'Gemini AI with Google Search' };
+                    } else {
+                        throw new Error("Could not parse AI response.");
+                    }
+                } catch (e) {
+                    console.error("Fake News API Error:", e);
+                    return { status: 'inconclusive', title: 'ANALYSIS INCONCLUSIVE', explanation: 'Could not connect to the AI fact-checking service. It may be temporarily unavailable.', advice: 'Please try again later or verify using trusted news sources.', source: 'Cyber Shell System' };
                 }
-                if (lowerCaseClaim.includes("modi") || lowerCaseClaim.includes("election")) {
-                     return { status: 'warning', title: 'POLITICAL CLAIM', explanation: 'Political claims often require context. Our AI suggests this needs further verification.', advice: 'Consult multiple reputable news outlets for a balanced view.', source: 'AI Analysis (Simulated)' };
-                }
-                if (lowerCaseClaim.length < 15) {
-                     return { status: 'safe', title: 'LIKELY FACTUAL', explanation: 'This claim is too short for a detailed analysis but shows no immediate red flags.', advice: 'For detailed topics, provide more context.', source: 'AI Analysis (Simulated)' };
-                }
-                return { status: 'safe', title: 'LIKELY FACTUAL', explanation: 'The claim does not match patterns of known misinformation.', advice: 'No immediate red flags detected.', source: 'AI Analysis (Simulated)' };
             }
 
-            // This function is kept as is, but browser security (CORS) might block it locally.
-            // On a live server, it's more likely to work.
             async function checkLinkAPI(url) {
                 let googleResult = { safe: true };
                 try {
-                    const googleRes = await fetch(`https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${GOOGLE_API_KEY}`, {
+                    const googleRes = await fetch(`https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${SAFE_BROWSING_API_KEY}`, {
                         method: 'POST',
                         body: JSON.stringify({ client: { clientId: "cybershell", clientVersion: "1.0.0" }, threatInfo: { threatTypes: ["MALWARE", "SOCIAL_ENGINEERING", "UNWANTED_SOFTWARE"], platformTypes: ["ANY_PLATFORM"], threatEntryTypes: ["URL"], threatEntries: [{ url }] } })
                     });
@@ -186,37 +210,34 @@
                     const vtRes = await fetch(`https://www.virustotal.com/api/v3/urls/${vtUrlId}`, { headers: { 'x-apikey': VT_API_KEY } });
                     if (vtRes.ok) {
                         const vtData = await vtRes.json();
-                        if (vtData.data && vtData.data.attributes && vtData.data.attributes.last_analysis_stats) {
+                        if (vtData.data?.attributes?.last_analysis_stats) {
                            vtResult.malicious = vtData.data.attributes.last_analysis_stats.malicious;
                         }
                     }
                 } catch (e) { console.error("VirusTotal Error:", e); }
 
-                if (!googleResult.safe || vtResult.malicious > 0) return { status: 'danger', title: 'PHISHING/MALICIOUS LINK DETECTED', explanation: `This URL is flagged as dangerous. ${!googleResult.safe ? `Google Threat: ${googleResult.threatType}.` : ''} ${vtResult.malicious > 0 ? `VirusTotal vendors flagged: ${vtResult.malicious}.` : ''}`, advice: 'Do not visit this link. Block the sender.', source: 'Google Safe Browsing & VirusTotal' };
-                if (url.includes("bit.ly") || url.includes("tinyurl")) return { status: 'warning', title: 'URL SHORTENER USED', explanation: 'This link uses a shortener, which can hide the true destination. Exercise caution.', advice: 'Be extra careful when clicking on shortened links from unknown senders.', source: 'URL Analysis' };
-                return { status: 'safe', title: 'URL SEEMS SAFE', explanation: 'No malicious activity detected for this URL.', advice: 'The link appears safe, but always be cautious of unexpected downloads.', source: 'Google Safe Browsing & VirusTotal' };
+                if (!googleResult.safe || vtResult.malicious > 0) return { status: 'verified_false', title: 'PHISHING/MALICIOUS LINK', explanation: `This URL is flagged as dangerous. ${!googleResult.safe ? `Google Threat: ${googleResult.threatType}.` : ''} ${vtResult.malicious > 0 ? `VirusTotal vendors flagged: ${vtResult.malicious}.` : ''}`, advice: 'Do not visit this link. Block the sender.', source: 'Google Safe Browsing & VirusTotal' };
+                if (/(bit\.ly|tinyurl\.com)/i.test(url)) return { status: 'inconclusive', title: 'URL SHORTENER USED', explanation: 'This link uses a shortener, which can hide the true destination. Exercise caution.', advice: 'Be extra careful when clicking on shortened links from unknown senders.', source: 'URL Analysis' };
+                return { status: 'verified_true', title: 'URL SEEMS SAFE', explanation: 'No malicious activity detected for this URL.', advice: 'The link appears safe, but always be cautious of unexpected downloads.', source: 'Google Safe Browsing & VirusTotal' };
             }
 
-            // FIX: Changed the API call protocol from http to https to avoid mixed-content errors.
             async function checkNumberAPI(number) {
                  try {
                     const response = await fetch(`https://apilayer.net/api/validate?access_key=${NUMVERIFY_API_KEY}&number=${number}`);
                     const data = await response.json();
-                    if (data.valid) return { status: 'safe', title: 'NUMBER SEEMS VALID', explanation: `Valid phone number from ${data.country_name || 'an unknown region'}, carrier: ${data.carrier || 'unknown'}.`, advice: 'While valid, this does not guarantee the caller is legitimate. Be cautious.', source: 'Number Verification API' };
-                    return { status: 'danger', title: 'INVALID OR SCAM NUMBER', explanation: 'This phone number appears invalid or is from a high-risk category.', advice: 'Do not answer or call back. Block this number.', source: 'Number Verification API' };
+                    if (data.valid) return { status: 'verified_true', title: 'NUMBER SEEMS VALID', explanation: `Valid phone number from ${data.country_name || 'an unknown region'}, carrier: ${data.carrier || 'unknown'}.`, advice: 'While valid, this does not guarantee the caller is legitimate. Be cautious.', source: 'numverify API' };
+                    return { status: 'verified_false', title: 'INVALID OR SCAM NUMBER', explanation: 'This phone number appears invalid or is from a high-risk category.', advice: 'Do not answer or call back. Block this number.', source: 'numverify API' };
                 } catch (e) {
-                    return { status: 'warning', title: 'ANALYSIS INCONCLUSIVE', explanation: 'Could not connect to the number verification service.', advice: 'If unsure, it is safest not to interact with the number.', source: 'Number Verification API' };
+                    console.error(e);
+                    return { status: 'inconclusive', title: 'ANALYSIS INCONCLUSIVE', explanation: 'Could not connect to the number verification service.', advice: 'If unsure, it is safest not to interact with the number.', source: 'numverify API' };
                 }
             }
             
-            // --- Event Listeners ---
             verifierTabs.addEventListener('click', (e) => {
                 const button = e.target.closest('.verifier-tab');
                 if (!button) return;
-
                 activeVerifier = button.dataset.verifier;
                 
-                // Update UI
                 document.querySelectorAll('.verifier-tab').forEach(tab => {
                     tab.classList.remove('bg-blue-600', 'text-white', 'shadow');
                     tab.classList.add('text-gray-600', 'hover:bg-gray-200');
@@ -228,21 +249,26 @@
                 verifierInput.placeholder = verifiers[activeVerifier].placeholder;
                 verifierInput.value = '';
                 resultContainer.innerHTML = '';
+                errorMessage.textContent = '';
             });
 
             verifierForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const inputValue = verifierInput.value.trim();
-                if (!inputValue) return;
+                resultContainer.innerHTML = '';
+                errorMessage.textContent = '';
+
+                const verifierConfig = verifiers[activeVerifier];
+                if (!verifierConfig.validation(inputValue)) {
+                    errorMessage.textContent = verifierConfig.errorMessage;
+                    return;
+                }
 
                 loader.style.display = 'flex';
                 verifyButton.disabled = true;
                 verifyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-spin h-5 w-5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`;
-                resultContainer.innerHTML = '';
-
-                const apiFunction = verifiers[activeVerifier].api;
-                const result = await apiFunction(inputValue);
                 
+                const result = await verifierConfig.api(inputValue);
                 renderResultCard(result);
 
                 loader.style.display = 'none';
@@ -251,18 +277,27 @@
             });
 
             function renderResultCard(result) {
-                const configs = {
+                const styleConfigs = {
                     safe: { icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-green-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`, classes: 'border-green-500 bg-green-50 text-green-800' },
                     warning: { icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-yellow-500"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>`, classes: 'border-yellow-500 bg-yellow-50 text-yellow-800' },
                     danger: { icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-red-500"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>`, classes: 'border-red-500 bg-red-50 text-red-800' }
                 };
-                const config = configs[result.status];
+
+                const statusMap = {
+                    verified_true: 'safe',
+                    inconclusive: 'warning',
+                    verified_false: 'danger'
+                };
+                
+                const resultStyle = statusMap[result.status] || 'warning';
+                const config = styleConfigs[resultStyle];
+
                 const cardHTML = `
                     <div class="mt-6 rounded-lg border-l-4 p-4 sm:p-6 shadow-md animate-fade-in ${config.classes}">
                         <div class="flex items-start">
                             <div class="flex-shrink-0">${config.icon}</div>
                             <div class="ml-4 flex-1">
-                                <p class="text-lg font-bold ${config.classes}">${result.title}</p>
+                                <p class="text-lg font-bold ${config.classes.split(' ')[2]}">${result.title}</p>
                                 <p class="mt-2 text-sm text-gray-700">${result.explanation}</p>
                                 <div class="mt-4">
                                     <p class="text-sm font-semibold text-gray-800">User Advice:</p>
