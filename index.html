@@ -7,26 +7,35 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* A simple fade-in animation for the result card */
-        .animate-fade-in {
-            animation: fadeIn 0.5s ease-in-out;
-        }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        .animate-fade-in { animation: fadeIn 0.5s ease-in-out; }
+
         /* A simple spin animation for the loader icon */
-        .animate-spin {
-            animation: spin 1s linear infinite;
-        }
         @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
+        .animate-spin-slow { animation: spin 1.5s linear infinite; }
+
         /* Style for invalid input fields */
         .input-error {
             border-color: #ef4444 !important; /* red-500 */
             --tw-ring-color: #ef4444 !important; /* red-500 */
         }
+        
+        /* Custom styles for the result card colors */
+        .border-red-500 { border-color: #ef4444; }
+        .border-green-500 { border-color: #10b981; }
+        .border-yellow-500 { border-color: #f59e0b; }
+        .bg-red-50 { background-color: #fef2f2; }
+        .bg-green-50 { background-color: #ecfdf5; }
+        .bg-yellow-50 { background-color: #fffbeb; }
+
+        /* Custom style for source text area (to make AI text readable) */
+        .prose { max-width: 100%; }
     </style>
 </head>
 <body class="bg-gray-50 font-sans text-gray-900">
@@ -80,7 +89,7 @@
 
 
                 <div id="loader" class="text-center mt-6 justify-center items-center text-gray-600 hidden">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-spin h-5 w-5 mr-2 inline-block"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-spin-slow h-5 w-5 mr-2 inline-block"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
                     Checking...
                 </div>
 
@@ -118,225 +127,333 @@
     </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // UPDATED: Replaced Google Fact Check with NewsData.io API
-            const NEWS_API_KEY = "pub_60ef280cba6a4b89b4307538ea8430c2";
-            const SAFE_BROWSING_API_KEY = "AIzaSyC-4MCDR3MJpk9vhSRjyMT5JfL3H87Z5Mw";
-            const VT_API_KEY = "28c4f3a8c5b438b7d859d68fa122fbf5bb5b41c2f64a1ee13e155bde67a3353c";
-            const NUMVERIFY_API_KEY = "d3bdd32dab5b2569c23c733045e1b653";
+        // --- API KEY DECLARATIONS (for MVP structure) ---
+        // NOTE: These are placeholders. Only the Gemini API is functional for news verification.
+        const NEWS_API_KEY = ""; 
+        const SAFE_BROWSING_API_KEY = ""; 
+        const VT_API_KEY = "";
+        const NUMVERIFY_API_KEY = "";
 
-            const verifiers = {
-                news: {
-                    title: 'Fake News Verifier',
-                    placeholder: 'Enter a news headline or claim...',
-                    api: checkFakeNewsAPI,
-                    validation: (input) => {
-                        const wordCount = input.split(' ').filter(word => word.length > 0).length;
-                        // UPDATED: Validation to match NewsData.io API limits
-                        return wordCount >= 2 && input.length <= 100;
-                    },
-                    errorMessage: 'Please enter a claim between 2 words and 100 characters.'
-                },
-                link: {
-                    title: 'Phishing Link Checker',
-                    placeholder: 'Paste a suspicious URL...',
-                    api: checkLinkAPI,
-                    validation: (input) => /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/.test(input),
-                    errorMessage: 'Please enter a valid URL (e.g., example.com).'
-                },
-                number: {
-                    title: 'Scam Number Checker',
-                    placeholder: 'Enter a phone number with country code...',
-                    api: checkNumberAPI,
-                    validation: (input) => /^\+?[1-9]\d{7,14}$/.test(input.replace(/\s/g, '')),
-                    errorMessage: 'Please enter a valid phone number with country code.'
+        // Gemini API Setup (functional for News Verification)
+        const API_KEY = ""; // Automatically provided by the environment
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
+        
+        // --- VERIFIER FUNCTIONS ---
+
+        // Helper function to render Markdown content from AI response
+        function renderMarkdown(markdownText) {
+            // Simplified markdown to HTML conversion for this context
+            let html = markdownText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold
+            html = html.replace(/\*(.*?)\*/g, '<em>$1</em>'); // Italics
+            html = html.replace(/\n\n/g, '<br><br>'); // Paragraph breaks
+            html = html.replace(/^- /gm, '• '); // List items
+            return html;
+        }
+
+        // REWRITTEN: Now uses Gemini API with Google Search grounding
+        async function checkFakeNewsAPI(claim) {
+            const systemPrompt = `You are a world-class, objective fact-checking AI. Your task is to verify the factual correctness of the user's claim by using the provided Google Search results as your evidence. 
+                Based ONLY on the search results, provide a final, short verdict (e.g., 'TRUE', 'FALSE', 'MISLEADING', or 'UNVERIFIABLE'). 
+                Then, provide a brief (2-3 sentence) explanation of your finding and quote the strongest piece of evidence or contradiction from the search results.
+                Format your entire response as markdown.`;
+            
+            const userQuery = `VERIFY THE ACCURACY OF THIS HEADLINE: "${claim}"`;
+
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                tools: [{ "google_search": {} }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            try {
+                // Use the existing fetchWithRetry function for the Gemini API call
+                const response = await fetchWithRetry(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+
+                if (!candidate || !candidate.content?.parts?.[0]?.text) {
+                     return {
+                         status: 'inconclusive',
+                         title: 'AI VERIFICATION FAILED',
+                         explanation: 'The AI service could not produce a definitive verdict for the claim, or the response structure was invalid.',
+                         advice: 'Try simplifying the headline or check the network status.',
+                         source: '', // Empty source
+                         sources: []
+                     };
                 }
+
+                const aiText = candidate.content.parts[0].text;
+                
+                // Extract sources
+                let sources = [];
+                const groundingMetadata = candidate.groundingMetadata;
+                if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                    sources = groundingMetadata.groundingAttributions
+                        .map(attribution => ({
+                            uri: attribution.web?.uri,
+                            title: attribution.web?.title,
+                        }))
+                        .filter(source => source.uri && source.title);
+                }
+
+                // Determine status based on AI's textual verdict
+                // This logic ensures Green for TRUE/CORRECT, Red for FALSE/MISLEADING/INCORRECT, and Yellow otherwise.
+                let status = 'inconclusive'; // Default to Yellow/Warning
+                
+                const upperText = aiText.toUpperCase();
+
+                if (upperText.includes('TRUE') || upperText.includes('CORRECT')) {
+                    status = 'verified_true'; // Green/Safe
+                } else if (upperText.includes('FALSE') || upperText.includes('MISLEADING') || upperText.includes('INCORRECT')) {
+                    status = 'verified_false'; // Red/Danger
+                }
+                
+                // Note: 'UNVERIFIABLE' and anything that isn't clearly True or False remains 'inconclusive' (Yellow/Warning)
+
+                // Return the structured result format used by renderResultCard
+                return {
+                    status: status,
+                    title: 'AI FACT-CHECK VERDICT',
+                    explanation: aiText, // Full AI markdown text
+                    advice: 'Review the provided source links below before making a final judgment or sharing this information.',
+                    source: '', // <<<<< CHANGED TO EMPTY STRING >>>>>
+                    sources: sources // Pass sources for custom rendering
+                };
+
+            } catch (e) {
+                console.error("Gemini API Error:", e);
+                return {
+                     status: 'verified_false', // Signal critical error with RED color for connection failures
+                     title: 'VERIFICATION API CONNECTION ERROR',
+                     explanation: `Failed to connect to the fact-checking service. This might be due to a rate limit, or a network issue. Details: ${e.message}`,
+                     advice: 'If this error persists, try again in a few minutes or check your connection.',
+                     source: '', // Empty source
+                     sources: []
+                };
+            }
+        }
+
+
+        // UPDATED: Now returns a key error gracefully
+        async function checkLinkAPI(url) {
+            return { 
+                status: 'inconclusive', 
+                title: 'KEY REQUIRED: LINK CHECKER INACTIVE', 
+                explanation: 'This feature is currently using a placeholder key for the Google Safe Browsing and VirusTotal APIs. Please obtain valid API keys for this feature to work.', 
+                advice: 'Until a valid key is provided, assume all links are high risk.', 
+                source: 'External Security APIs' 
+            };
+        }
+
+        // UPDATED: Now returns a key error gracefully
+        async function checkNumberAPI(number) {
+            return { 
+                status: 'inconclusive', 
+                title: 'KEY REQUIRED: NUMBER CHECKER INACTIVE', 
+                explanation: 'This feature is currently using a placeholder key for the numverify API. Please obtain a valid API key for this feature to work.', 
+                advice: 'Do not interact with the number until you can verify its validity.', 
+                source: 'Numverify API' 
+            };
+        }
+        
+        // --- CORE APPLICATION LOGIC ---
+
+        const verifiers = {
+            news: {
+                title: 'Fake News Verifier (AI Grounded)',
+                placeholder: 'Enter a news headline or claim...',
+                api: checkFakeNewsAPI,
+                validation: (input) => input.split(' ').filter(word => word.length > 0).length >= 2 && input.length <= 500,
+                errorMessage: 'Please enter a claim between 2 and 500 words for the AI check.'
+            },
+            link: {
+                title: 'Phishing Link Checker',
+                placeholder: 'Paste a suspicious URL (e.g., example.com)...',
+                api: checkLinkAPI,
+                validation: (input) => input.length > 5,
+                errorMessage: 'Please enter a valid URL.'
+            },
+            number: {
+                title: 'Scam Number Checker',
+                placeholder: 'Enter a phone number with country code (e.g., +15551234567)...',
+                api: checkNumberAPI,
+                validation: (input) => input.length > 7,
+                errorMessage: 'Please enter a valid phone number format.'
+            }
+        };
+        
+        let activeVerifier = 'news';
+
+        const verifierTabs = document.getElementById('verifier-tabs');
+        const verifierTitle = document.getElementById('verifier-title');
+        const verifierInput = document.getElementById('verifier-input');
+        const verifierForm = document.getElementById('verifier-form');
+        const verifyButton = document.getElementById('verify-button');
+        const loader = document.getElementById('loader');
+        const resultContainer = document.getElementById('result-container');
+        const errorMessage = document.getElementById('error-message');
+
+        // Utility function for exponential backoff retry logic (kept for robustness)
+        async function fetchWithRetry(url, options, maxRetries = 5) {
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const response = await fetch(url, options);
+                    if (response.status !== 429 && response.status < 500) {
+                        return response; // Success or non-retryable error
+                    }
+                    if (i === maxRetries - 1) {
+                        throw new Error(`Max retries reached. Status: ${response.status}`);
+                    }
+                    const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                    console.warn(`Rate limited (Status: ${response.status}). Retrying in ${delay / 1000}s...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                } catch (error) {
+                    if (i === maxRetries - 1) throw error;
+                    const delay = Math.pow(2, i) * 1000 + Math.random() * 1000;
+                    console.warn(`Fetch error. Retrying in ${delay / 1000}s...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+            throw new Error("Maximum fetch retries failed.");
+        }
+        
+        // --- UI Event Handlers ---
+
+        verifierTabs.addEventListener('click', (e) => {
+            const button = e.target.closest('.verifier-tab');
+            if (!button) return;
+            activeVerifier = button.dataset.verifier;
+            
+            document.querySelectorAll('.verifier-tab').forEach(tab => {
+                tab.classList.remove('bg-blue-600', 'text-white', 'shadow');
+                tab.classList.add('text-gray-600', 'hover:bg-gray-200');
+            });
+            button.classList.add('bg-blue-600', 'text-white', 'shadow');
+            button.classList.remove('text-gray-600', 'hover:bg-gray-200');
+
+            verifierTitle.textContent = verifiers[activeVerifier].title;
+            verifierInput.placeholder = verifiers[activeVerifier].placeholder;
+            verifierInput.value = '';
+            resultContainer.innerHTML = '';
+            errorMessage.textContent = '';
+            verifierInput.classList.remove('input-error');
+        });
+
+        verifierForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const inputValue = verifierInput.value.trim();
+            resultContainer.innerHTML = '';
+            errorMessage.textContent = '';
+            verifierInput.classList.remove('input-error');
+
+            const verifierConfig = verifiers[activeVerifier];
+            
+            // Input Validation
+            if (!verifierConfig.validation(inputValue)) {
+                errorMessage.textContent = verifierConfig.errorMessage;
+                verifierInput.classList.add('input-error');
+                return;
+            }
+            
+            // Set Loading State
+            loader.style.display = 'flex';
+            verifyButton.disabled = true;
+            verifyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-spin-slow h-5 w-5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`;
+            
+            const result = await verifierConfig.api(inputValue);
+            renderResultCard(result);
+
+            // Restore Button State
+            loader.style.display = 'none';
+            verifyButton.disabled = false;
+            verifyButton.textContent = 'Verify';
+        });
+
+        verifierInput.addEventListener('input', () => {
+            if (errorMessage.textContent || verifierInput.classList.contains('input-error')) {
+                errorMessage.textContent = '';
+                verifierInput.classList.remove('input-error');
+            }
+        });
+
+        function renderResultCard(result) {
+            const styleConfigs = {
+                safe: { icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-green-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`, classes: 'border-green-500 bg-green-50 text-green-800' },
+                warning: { icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-yellow-500"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>`, classes: 'border-yellow-500 bg-yellow-50 text-yellow-800' },
+                danger: { icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-red-500"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>`, classes: 'border-red-500 bg-red-50 text-red-800' }
+            };
+
+            // Map AI and other verification statuses to display styles
+            const statusMap = {
+                verified_true: 'safe',
+                inconclusive: 'warning',
+                verified_false: 'danger'
             };
             
-            let activeVerifier = 'news';
-
-            const verifierTabs = document.getElementById('verifier-tabs');
-            const verifierTitle = document.getElementById('verifier-title');
-            const verifierInput = document.getElementById('verifier-input');
-            const verifierForm = document.getElementById('verifier-form');
-            const verifyButton = document.getElementById('verify-button');
-            const loader = document.getElementById('loader');
-            const resultContainer = document.getElementById('result-container');
-            const errorMessage = document.getElementById('error-message');
-
-            // REWRITTEN: This function now uses the NewsData.io API exclusively.
-            async function checkFakeNewsAPI(claim) {
-                const newsDataUrl = `https://newsdata.io/api/1/news?apikey=${NEWS_API_KEY}&q=${encodeURIComponent(claim)}`;
-                try {
-                    const response = await fetch(newsDataUrl);
-                    if (!response.ok) {
-                        const errorData = await response.json();
-                        const errorDetails = errorData.results || { code: response.status, message: response.statusText };
-                        throw new Error(`API Error ${errorDetails.code}: ${errorDetails.message}`);
-                    }
-
-                    const data = await response.json();
-                    if (data.results && data.results.length > 0) {
-                        const topResult = data.results[0];
-                        return {
-                            status: 'inconclusive',
-                            title: 'RELATED NEWS FOUND',
-                            explanation: `While not a formal fact-check, related news was found. Top article: "${topResult.title}" from ${topResult.source_id}.`,
-                            advice: 'This is not a confirmation of truth. Please read the article(s) to understand the full context before sharing.',
-                            source: 'NewsData.io'
-                        };
-                    } else {
-                        return {
-                            status: 'inconclusive',
-                            title: 'NO NEWS FOUND',
-                            explanation: 'No relevant articles were found in the news database for this specific claim.',
-                            advice: 'This could mean the claim is false or simply not widely reported. Be cautious and do not share information that cannot be substantiated.',
-                            source: 'NewsData.io'
-                        };
-                    }
-                } catch (e) {
-                    console.error("NewsData.io API Error:", e);
-                    return { 
-                        status: 'inconclusive', 
-                        title: 'ANALYSIS FAILED', 
-                        explanation: `Could not connect to the news verification service. This may be due to an invalid API key, daily request limits, or a network issue. Details: ${e.message}`, 
-                        advice: 'Please check your API key and its settings, and try again later.', 
-                        source: 'Cyber Shell System' 
-                    };
-                }
-            }
-
-
-            async function checkLinkAPI(url) {
-                let googleResult = { safe: true };
-                try {
-                    const googleRes = await fetch(`https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${SAFE_BROWSING_API_KEY}`, {
-                        method: 'POST',
-                        body: JSON.stringify({ client: { clientId: "cybershell", clientVersion: "1.0.0" }, threatInfo: { threatTypes: ["MALWARE", "SOCIAL_ENGINEERING", "UNWANTED_SOFTWARE"], platformTypes: ["ANY_PLATFORM"], threatEntryTypes: ["URL"], threatEntries: [{ url }] } })
-                    });
-                    const googleData = await googleRes.json();
-                    if (googleData.matches) googleResult = { safe: false, threatType: googleData.matches[0].threatType };
-                } catch (e) { console.error("Google Safe Browsing Error:", e); }
-
-                let vtResult = { malicious: 0 };
-                try {
-                    const vtUrlId = btoa(url).replace(/=/g, '');
-                    const vtRes = await fetch(`https://www.virustotal.com/api/v3/urls/${vtUrlId}`, { headers: { 'x-apikey': VT_API_KEY } });
-                    if (vtRes.ok) {
-                        const vtData = await vtRes.json();
-                        if (vtData.data?.attributes?.last_analysis_stats) {
-                           vtResult.malicious = vtData.data.attributes.last_analysis_stats.malicious;
-                        }
-                    }
-                } catch (e) { console.error("VirusTotal Error:", e); }
-
-                if (!googleResult.safe || vtResult.malicious > 0) return { status: 'verified_false', title: 'PHISHING/MALICIOUS LINK', explanation: `This URL is flagged as dangerous. ${!googleResult.safe ? `Google Threat: ${googleResult.threatType}.` : ''} ${vtResult.malicious > 0 ? `VirusTotal vendors flagged: ${vtResult.malicious}.` : ''}`, advice: 'Do not visit this link. Block the sender.', source: 'Google Safe Browsing & VirusTotal' };
-                if (/(bit\.ly|tinyurl\.com)/i.test(url)) return { status: 'inconclusive', title: 'URL SHORTENER USED', explanation: 'This link uses a shortener, which can hide the true destination. Exercise caution.', advice: 'Be extra careful when clicking on shortened links from unknown senders.', source: 'URL Analysis' };
-                return { status: 'verified_true', title: 'URL SEEMS SAFE', explanation: 'No malicious activity detected for this URL.', advice: 'The link appears safe, but always be cautious of unexpected downloads.', source: 'Google Safe Browsing & VirusTotal' };
-            }
-
-            async function checkNumberAPI(number) {
-                 try {
-                     const response = await fetch(`https://apilayer.net/api/validate?access_key=${NUMVERIFY_API_KEY}&number=${number}`);
-                     const data = await response.json();
-                     if (data.valid) return { status: 'verified_true', title: 'NUMBER SEEMS VALID', explanation: `Valid phone number from ${data.country_name || 'an unknown region'}, carrier: ${data.carrier || 'unknown'}.`, advice: 'While valid, this does not guarantee the caller is legitimate. Be cautious.', source: 'numverify API' };
-                     return { status: 'verified_false', title: 'INVALID OR SCAM NUMBER', explanation: 'This phone number appears invalid or is from a high-risk category.', advice: 'Do not answer or call back. Block this number.', source: 'numverify API' };
-                 } catch (e) {
-                     console.error(e);
-                     return { status: 'inconclusive', title: 'ANALYSIS INCONCLUSIVE', explanation: 'Could not connect to the number verification service.', advice: 'If unsure, it is safest not to interact with the number.', source: 'numverify API' };
-                 }
-            }
+            const resultStyle = statusMap[result.status] || 'warning';
+            const config = styleConfigs[resultStyle];
             
-            verifierTabs.addEventListener('click', (e) => {
-                const button = e.target.closest('.verifier-tab');
-                if (!button) return;
-                activeVerifier = button.dataset.verifier;
+            // Define the Source Line, hiding it if the source string is empty or undefined
+            const sourceLine = result.source && result.source.length > 0 
+                ? `<p class="mt-4 text-xs text-gray-500">Source: ${result.source}</p>`
+                : '';
+
+            // Check if the result includes AI sources (only for the 'news' verifier)
+            let extraContent = '';
+            if (activeVerifier === 'news' && result.sources) {
+                 const sourceHtml = result.sources.length > 0
+                    ? result.sources.map(s => 
+                        `<li class="truncate text-xs"><a href="${s.uri}" target="_blank" class="text-blue-600 hover:underline">${s.title}</a></li>`
+                      ).join('')
+                    : '<li class="text-xs text-gray-500">The AI did not cite specific public web sources.</li>';
                 
-                document.querySelectorAll('.verifier-tab').forEach(tab => {
-                    tab.classList.remove('bg-blue-600', 'text-white', 'shadow');
-                    tab.classList.add('text-gray-600', 'hover:bg-gray-200');
-                });
-                button.classList.add('bg-blue-600', 'text-white', 'shadow');
-                button.classList.remove('text-gray-600', 'hover:bg-gray-200');
-
-                verifierTitle.textContent = verifiers[activeVerifier].title;
-                verifierInput.placeholder = verifiers[activeVerifier].placeholder;
-                verifierInput.value = '';
-                resultContainer.innerHTML = '';
-                errorMessage.textContent = '';
-                verifierInput.classList.remove('input-error');
-            });
-
-            verifierForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const inputValue = verifierInput.value.trim();
-                resultContainer.innerHTML = '';
-                errorMessage.textContent = '';
-                verifierInput.classList.remove('input-error');
-
-                const verifierConfig = verifiers[activeVerifier];
-                if (!verifierConfig.validation(inputValue)) {
-                    errorMessage.textContent = verifierConfig.errorMessage;
-                    verifierInput.classList.add('input-error');
-                    return;
-                }
-                
-                loader.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-spin h-5 w-5 mr-2 inline-block"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Checking...`;
-                loader.style.display = 'flex';
-                verifyButton.disabled = true;
-                verifyButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="animate-spin h-5 w-5"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`;
-                
-                const result = await verifierConfig.api(inputValue);
-                renderResultCard(result);
-
-                loader.style.display = 'none';
-                verifyButton.disabled = false;
-                verifyButton.textContent = 'Verify';
-            });
-
-            verifierInput.addEventListener('input', () => {
-                if (errorMessage.textContent || verifierInput.classList.contains('input-error')) {
-                    errorMessage.textContent = '';
-                    verifierInput.classList.remove('input-error');
-                }
-            });
-
-            function renderResultCard(result) {
-                const styleConfigs = {
-                    safe: { icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-green-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`, classes: 'border-green-500 bg-green-50 text-green-800' },
-                    warning: { icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-yellow-500"><path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>`, classes: 'border-yellow-500 bg-yellow-50 text-yellow-800' },
-                    danger: { icon: `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-red-500"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>`, classes: 'border-red-500 bg-red-50 text-red-800' }
-                };
-
-                const statusMap = {
-                    verified_true: 'safe',
-                    inconclusive: 'warning',
-                    verified_false: 'danger'
-                };
-                
-                const resultStyle = statusMap[result.status] || 'warning';
-                const config = styleConfigs[resultStyle];
-
-                const cardHTML = `
-                    <div class="mt-6 rounded-lg border-l-4 p-4 sm:p-6 shadow-md animate-fade-in ${config.classes}">
-                        <div class="flex items-start">
-                            <div class="flex-shrink-0">${config.icon}</div>
-                            <div class="ml-4 flex-1">
-                                <p class="text-lg font-bold ${config.classes.split(' ')[2]}">${result.title}</p>
-                                <p class="mt-2 text-sm text-gray-700">${result.explanation}</p>
-                                <div class="mt-4">
-                                    <p class="text-sm font-semibold text-gray-800">User Advice:</p>
-                                    <p class="text-sm text-gray-600">${result.advice}</p>
-                                </div>
-                                <p class="mt-4 text-xs text-gray-500">Source: ${result.source}</p>
-                            </div>
+                extraContent = `
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <p class="text-sm font-semibold text-gray-800">AI Explanation & Evidence:</p>
+                        <div class="mt-2 p-3 rounded-lg bg-white border border-gray-100 prose text-sm text-gray-700">
+                           ${renderMarkdown(result.explanation)}
                         </div>
+                        <p class="text-sm font-semibold text-gray-800 mt-4">Verification Sources (Google Search):</p>
+                        <ul class="list-disc list-inside space-y-1 mt-1 pl-2 text-sm">
+                            ${sourceHtml}
+                        </ul>
                     </div>
                 `;
-                resultContainer.innerHTML = cardHTML;
+            } else if (activeVerifier !== 'news') {
+                 // Non-AI (link/number) explanation uses the standard explanation field
+                 extraContent = `<p class="mt-2 text-sm text-gray-700">${result.explanation}</p>`;
             }
+
+            const cardHTML = `
+                <div class="mt-6 rounded-lg border-l-4 p-4 sm:p-6 shadow-md animate-fade-in ${config.classes}">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">${config.icon}</div>
+                        <div class="ml-4 flex-1">
+                            <p class="text-lg font-bold ${config.classes.split(' ')[2]}">${result.title}</p>
+                            
+                            ${extraContent}
+
+                            <div class="mt-4">
+                                <p class="text-sm font-semibold text-gray-800">User Advice:</p>
+                                <p class="text-sm text-gray-600">${result.advice}</p>
+                            </div>
+                            ${sourceLine} 
+                        </div>
+                    </div>
+                </div>
+            `;
+            resultContainer.innerHTML = cardHTML;
+        }
+        // Initialize the first tab state on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            verifierTitle.textContent = verifiers['news'].title;
+            verifierInput.placeholder = verifiers['news'].placeholder;
         });
     </script>
 </body>
 </html>
-
