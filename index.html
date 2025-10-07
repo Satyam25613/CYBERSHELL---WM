@@ -40,18 +40,23 @@
 </head>
 <body class="bg-gray-50 font-sans text-gray-900">
 
+    <!-- Header -->
     <header class="bg-white shadow-sm sticky top-0 z-50 backdrop-blur-md bg-opacity-80">
         <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center sm:justify-between items-center">
             <div class="flex items-center space-x-3">
+                <!-- Inline SVG for Shield Icon -->
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                 <h1 class="text-2xl font-bold text-gray-800">CYBER SHELL</h1>
             </div>
         </nav>
     </header>
 
+    <!-- Main Content -->
     <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <!-- Verifier Section -->
         <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8">
             <div class="w-full max-w-2xl mx-auto">
+                <!-- Verifier Tabs -->
                 <div id="verifier-tabs" class="flex justify-center space-x-2 sm:space-x-4 rounded-full bg-gray-100 p-2">
                     <button data-verifier="news" class="verifier-tab flex-1 px-3 py-2 text-sm sm:text-base font-semibold rounded-full transition-colors duration-300 flex items-center justify-center space-x-2 bg-blue-600 text-white shadow">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 20h-4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2H0v-2a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2zm0-4H0V4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12zM5 8h2m-2 4h2m-2 4h2"/></svg>
@@ -92,6 +97,7 @@
             </div>
         </div>
         
+        <!-- Knowledge Hub Section -->
         <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg">
             <div class="space-y-12">
                 <div>
@@ -114,6 +120,7 @@
         </div>
     </main>
 
+    <!-- Footer -->
     <footer class="text-center py-6 text-sm text-gray-500">
         <p>&copy; 2025 CYBER SHELL. All Rights Reserved.</p>
         <p class="mt-1">Your AI-Powered Digital Guardian.</p>
@@ -122,8 +129,9 @@
     <script>
         // --- API KEY DECLARATIONS ---
 
-        // !! SECURITY WARNING !!: Hardcoding keys in the frontend is DANGEROUS for production.
-        // This is done ONLY for simple testing/demonstration. For a live environment, use a secure backend proxy.
+        // !! SECURITY WARNING: GEMINI KEY HARDCODED FOR TESTING !!
+        // This is done to force the key to be used on public GitHub deployments.
+        // For production, this MUST be moved to a secure backend environment variable.
         const API_KEY = "AIzaSyC_8AxDL7_MPEo0F-ObZ4rW0jXlgRPxMAc"; // Gemini API Key
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
         
@@ -177,7 +185,7 @@
                      return {
                          status: 'inconclusive',
                          title: 'AI VERIFICATION FAILED',
-                         explanation: 'The AI service could not produce a definitive verdict for the claim, or the response structure was invalid.',
+                         explanation: 'The AI service could not produce a definitive verdict for the claim. Check your console for API errors.',
                          advice: 'Try simplifying the headline or check the network status.',
                          source: '', 
                          sources: []
@@ -220,8 +228,8 @@
                 return {
                      status: 'verified_false', 
                      title: 'VERIFICATION API CONNECTION ERROR',
-                     explanation: `Failed to connect to the fact-checking service. This might be due to a rate limit, or a network issue. Details: ${e.message}`,
-                     advice: 'If this error persists, try again in a few minutes or check your connection.',
+                     explanation: `Failed to connect to the fact-checking service. This might be due to an authentication error (exposed key) or a network issue. Details: ${e.message}`,
+                     advice: 'If this error persists, the publicly exposed key may be blocked. Consider using a secure backend proxy.',
                      source: '',
                      sources: []
                 };
@@ -229,26 +237,16 @@
         }
 
 
-        // Link Checker (Uses VirusTotal with new key + local checks)
+        // Link Checker (Uses VirusTotal)
         async function checkLinkAPI(url) {
-            const isShortened = /(bit\.ly|tinyurl\.com|t\.co|goo\.gl)/i.test(url);
-            
-            if (isShortened) {
-                 return { 
-                     status: 'inconclusive', 
-                     title: 'URL SHORTENER DETECTED', 
-                     explanation: 'The link uses a URL shortening service (like bit.ly or t.co), which hides the true destination. Exercise caution before clicking.', 
-                     advice: 'Exercise extreme caution. Do not click unless you are absolutely sure of the source.', 
-                     source: 'Local Client Check' 
-                 };
-            }
             
             let maliciousCount = 0;
-            let reportSource = 'Local/Basic Check';
+            let reportSource = 'Basic Check (No VirusTotal)';
 
             if (VT_API_KEY) {
                 // VirusTotal Check - simplified hash retrieval and API call
                 try {
+                    // This generates the base64 encoded URL identifier required by VT's API
                     const vtUrlId = btoa(url).replace(/=/g, ''); 
                     
                     const vtRes = await fetch(`https://www.virustotal.com/api/v3/urls/${vtUrlId}`, { 
@@ -263,16 +261,34 @@
                         }
                     } else if (vtRes.status === 404) {
                         maliciousCount = 0;
-                        reportSource = 'VirusTotal API (Unreported)';
+                        reportSource = 'VirusTotal API (URL not in DB)';
                     } else {
+                        // Handle other API errors (e.g., rate limits, invalid key)
                         reportSource = `VirusTotal API Error (${vtRes.status})`;
+                        
+                        // If there is an API error and we can't get a definitive result, mark as inconclusive/warning
+                        return { 
+                             status: 'inconclusive', 
+                             title: 'LINK CHECK INCONCLUSIVE (API Error)', 
+                             explanation: `Could not retrieve scan data from VirusTotal due to a service issue (Status ${vtRes.status}). Proceed with caution.`, 
+                             advice: 'If the link is unexpected, do not click it. Check the console for full error details.', 
+                             source: 'External Security Check' 
+                        };
                     }
                 } catch (e) { 
                     console.error("VirusTotal Fetch Error:", e);
                     reportSource = 'VirusTotal API Connection Failed';
+                    return { 
+                        status: 'inconclusive', 
+                        title: 'LINK CHECK INCONCLUSIVE (Connection Failed)', 
+                        explanation: `Failed to connect to the external link verification service. Network error: ${e.message}.`, 
+                        advice: 'If the link is unexpected, do not click it. Check the console for full error details.', 
+                        source: 'External Security Check' 
+                    };
                 }
             }
 
+            // Final Result Determination
             if (maliciousCount > 0) {
                  return { 
                      status: 'verified_false', 
