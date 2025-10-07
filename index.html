@@ -76,6 +76,15 @@
                     <h2 id="verifier-title" class="text-2xl font-bold text-gray-800">Fake News Verifier</h2>
                     <p class="text-gray-600 mt-2">Get instant analysis to stay safe.</p>
                 </div>
+                
+                <!-- NEW: External Tools Section - HIDDEN BY DEFAULT -->
+                <div id="virus-total-container" class="mt-4 flex justify-center space-x-4 hidden">
+                    <a href="https://www.virustotal.com/gui/home/url" target="_blank" class="px-4 py-2 text-sm rounded-full bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors duration-300 shadow-md flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><circle cx="12" cy="12" r="3"/></svg>
+                        Analyze on VirusTotal
+                    </a>
+                </div>
+                <!-- /NEW: External Tools Section -->
 
                 <form id="verifier-form" class="mt-6">
                     <div class="relative">
@@ -130,13 +139,11 @@
         // --- API KEY DECLARATIONS ---
 
         // !! SECURITY WARNING: GEMINI KEY HARDCODED FOR TESTING !!
-        // This is done to force the key to be used on public GitHub deployments.
-        // For production, this MUST be moved to a secure backend environment variable.
         const API_KEY = "AIzaSyC_8AxDL7_MPEo0F-ObZ4rW0jXlgRPxMAc"; // Gemini API Key (Working)
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
         
-        // VirusTotal Key (USED AS A PLACEHOLDER KEY FOR GSB for demonstration)
-        const GSB_API_KEY = "89fbf8b690896870ef1fa81a19f6ac9d8bbe9563dc54d950fa34a64ceac33f97"; 
+        // Google Safe Browsing Key (NOTE: We are using the AI Grounded check for reliability.)
+        const GSB_API_KEY = "AIzaSyARiX8y24eRrdCNkh9sOf39gE3WJLTws2g"; 
         
         // NumVerify Key (functional for Number verification)
         const NUMVERIFY_API_KEY = "1e8f0d3dce29513cc8db2e032bedc926"; 
@@ -153,7 +160,7 @@
             return html;
         }
 
-        // News Verifier (Uses Gemini + Search Grounding for Cross-Device Stability)
+        // News Verifier (Uses Gemini + Search Grounding)
         async function checkFakeNewsAPI(claim) {
             const systemPrompt = `You are a world-class, objective fact-checking AI. Your task is to verify the factual correctness of the user's claim by using the provided Google Search results as your evidence. 
                 Based ONLY on the search results, provide a final, short verdict (e.g., 'TRUE', 'FALSE', 'MISLEADING', or 'UNVERIFIABLE'). 
@@ -234,78 +241,84 @@
         }
 
 
-        // Link Checker (Uses Google Safe Browsing API)
+        // Link Checker (AI Grounded Reputation Check - RELIABLE CLIENT-SIDE METHOD)
         async function checkLinkAPI(url) {
+            const systemPrompt = `You are a sophisticated digital security analyst. The user has provided a URL. Use Google Search to find public information about the domain's safety, reputation, and categorization (e.g., if it's flagged as phishing, malware, or low-reputation). 
+                Based ONLY on search results, provide a verdict: 'SAFE', 'RISKY', or 'DANGEROUS'.
+                Provide a brief (2-3 sentence) summary of your finding, referencing the key piece of evidence found.
+                Format your entire response as markdown.`;
             
-            // NOTE: Google Safe Browsing API requires a backend server/proxy 
-            // due to strict CORS and API key exposure rules. This client-side 
-            // implementation is for demonstration only and will likely fail 
-            // publicly due to browser security restrictions.
-            const GSB_URL = `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${GSB_API_KEY}`;
-            
+            const userQuery = `ANALYZE THE REPUTATION AND SAFETY OF THIS URL: "${url}"`;
+
             const payload = {
-                client: {
-                    clientId: "cyber-shell-app",
-                    clientVersion: "1.0.0"
-                },
-                threatInfo: {
-                    threatTypes: ["MALWARE", "SOCIAL_ENGINEERING", "UNWANTED_SOFTWARE", "POTENTIALLY_HARMFUL_APPLICATION"],
-                    platformTypes: ["ANY_PLATFORM"],
-                    threatEntryTypes: ["URL"],
-                    threatEntries: [{ url: url }]
-                }
+                contents: [{ parts: [{ text: userQuery }] }],
+                tools: [{ "google_search": {} }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
             };
 
             try {
-                const response = await fetch(GSB_URL, { 
+                const response = await fetchWithRetry(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
+                
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
 
-                if (response.ok) {
-                    const data = await response.json();
-                    
-                    if (data && data.matches && data.matches.length > 0) {
-                        const threatType = data.matches[0].threatType;
-                        return { 
-                            status: 'verified_false', 
-                            title: `THREAT DETECTED: ${threatType}`, 
-                            explanation: `Google Safe Browsing detected this URL as harmful (Threat Type: ${threatType}).`, 
-                            advice: 'DO NOT proceed. This link is extremely dangerous. Block the sender.', 
-                            source: 'Google Safe Browsing API' 
-                        };
-                    }
-                    
-                    return { 
-                        status: 'verified_true', 
-                        title: 'URL APPEARS SAFE (Google GSB Check)', 
-                        explanation: `Google Safe Browsing found no immediate malicious matches for this URL.`, 
-                        advice: 'The link appears safe, but use general caution with any request for personal data.', 
-                        source: 'Google Safe Browsing API' 
-                    };
-                } else {
-                     // Handle non-OK response (e.g., 400 bad request, 403 API key issue)
-                     const errorText = await response.text();
-                     console.error("GSB API Error:", response.status, errorText);
-                     return { 
-                         status: 'inconclusive', 
-                         title: `GSB API ERROR (${response.status})`, 
-                         explanation: `Could not complete the Safe Browsing check due to an API error. (Status: ${response.status}). The API key may be invalid or the service limits have been reached.`, 
-                         advice: 'Proceed with extreme caution. This check is inconclusive.', 
-                         source: 'Google Safe Browsing API' 
+                if (!candidate || !candidate.content?.parts?.[0]?.text) {
+                     return {
+                         status: 'inconclusive',
+                         title: 'AI VERIFICATION FAILED',
+                         explanation: 'The AI service could not produce a definitive verdict for the URL check.',
+                         advice: 'Try simplifying the URL or check the network status.',
+                         source: '', 
+                         sources: []
                      };
                 }
 
-            } catch (e) { 
-                console.error("GSB Fetch Error:", e);
-                // This is the common 'Failed to fetch' error due to CORS/browser security
-                return { 
-                    status: 'inconclusive', 
-                    title: 'LINK CHECK INCONCLUSIVE (Proxy Needed)', 
-                    explanation: `The browser blocked the request (likely a CORS policy issue) or a network failure occurred. Google Safe Browsing requires API calls to be made from a **backend server/proxy** for security.`, 
-                    advice: 'For a public site, you must route this API call through a simple backend (e.g., Cloud Function or server) to ensure security and bypass browser restrictions.', 
-                    source: 'Google Safe Browsing API' 
+                const aiText = candidate.content.parts[0].text;
+                
+                let sources = [];
+                const groundingMetadata = candidate.groundingMetadata;
+                if (groundingMetadata && groundingMetadata.groundingAttributions) {
+                    sources = groundingMetadata.groundingAttributions
+                        .map(attribution => ({
+                            uri: attribution.web?.uri,
+                            title: attribution.web?.title,
+                        }))
+                        .filter(source => source.uri && source.title);
+                }
+
+                let status = 'inconclusive'; 
+                const upperText = aiText.toUpperCase();
+
+                if (upperText.includes('SAFE') || upperText.includes('CLEAN')) {
+                    status = 'verified_true'; // Green/Safe
+                } else if (upperText.includes('DANGEROUS') || upperText.includes('MALWARE') || upperText.includes('PHISHING')) {
+                    status = 'verified_false'; // Red/Danger
+                } else if (upperText.includes('RISKY') || upperText.includes('SUSPICIOUS')) {
+                    status = 'inconclusive'; // Yellow/Warning
+                }
+                
+                return {
+                    status: status,
+                    title: 'AI REPUTATION VERDICT',
+                    explanation: aiText,
+                    advice: 'Review the provided source links below before visiting the URL.',
+                    source: '',
+                    sources: sources
+                };
+
+            } catch (e) {
+                console.error("Gemini API Error:", e);
+                return {
+                     status: 'verified_false', 
+                     title: 'VERIFICATION API CONNECTION ERROR',
+                     explanation: `Failed to connect to the fact-checking service. This might be due to an authentication error or a network issue. Details: ${e.message}`,
+                     advice: 'If this error persists, contact support.',
+                     source: '',
+                     sources: []
                 };
             }
         }
@@ -385,11 +398,11 @@
                 errorMessage: 'Please enter a claim between 2 and 500 words for the AI check.'
             },
             link: {
-                title: 'Phishing Link Checker (GSB)',
+                title: 'Link Reputation Checker (AI Grounded)', // Using the AI Grounded API
                 placeholder: 'Paste a suspicious URL (e.g., https://malicious.link)...',
-                api: checkLinkAPI,
-                validation: (input) => input.length > 0,
-                errorMessage: 'Please enter a valid URL.'
+                api: checkLinkAPI, 
+                validation: (input) => input.startsWith('http://') || input.startsWith('https://'),
+                errorMessage: 'Please enter a valid URL starting with http:// or https://.'
             },
             number: {
                 title: 'Scam Number Checker',
@@ -410,6 +423,7 @@
         const loader = document.getElementById('loader');
         const resultContainer = document.getElementById('result-container');
         const errorMessage = document.getElementById('error-message');
+        const virusTotalContainer = document.getElementById('virus-total-container'); // NEW Element reference
 
         // Utility function for exponential backoff retry logic (kept for robustness)
         async function fetchWithRetry(url, options, maxRetries = 5) {
@@ -455,6 +469,13 @@
             resultContainer.innerHTML = '';
             errorMessage.textContent = '';
             verifierInput.classList.remove('input-error');
+
+            // --- Toggle VirusTotal button visibility ---
+            if (activeVerifier === 'link') {
+                virusTotalContainer.classList.remove('hidden');
+            } else {
+                virusTotalContainer.classList.add('hidden');
+            }
         });
 
         verifierForm.addEventListener('submit', async (e) => {
@@ -516,30 +537,30 @@
                 ? `<p class="mt-4 text-xs text-gray-500">Source: ${result.source}</p>`
                 : '';
 
-            // Check if the result includes AI sources (only for the 'news' verifier)
+            // Check if the result includes AI sources (only for the 'news' or 'link' AI verifier)
             let extraContent = '';
-            if (activeVerifier === 'news' && result.sources) {
-                 const sourceHtml = result.sources.length > 0
-                     ? result.sources.map(s => 
-                         `<li class="truncate text-xs"><a href="${s.uri}" target="_blank" class="text-blue-600 hover:underline">${s.title}</a></li>`
-                       ).join('')
-                     : '<li class="text-xs text-gray-500">The AI did not cite specific public web sources.</li>';
+            if ((activeVerifier === 'news' || activeVerifier === 'link') && result.sources) {
+                   const sourceHtml = result.sources.length > 0
+                       ? result.sources.map(s => 
+                           `<li class="truncate text-xs"><a href="${s.uri}" target="_blank" class="text-blue-600 hover:underline">${s.title}</a></li>`
+                         ).join('')
+                       : '<li class="text-xs text-gray-500">The AI did not cite specific public web sources.</li>';
                 
-                 extraContent = `
-                     <div class="mt-4 pt-4 border-t border-gray-200">
-                         <p class="text-sm font-semibold text-gray-800">AI Explanation & Evidence:</p>
-                         <div class="mt-2 p-3 rounded-lg bg-white border border-gray-100 prose text-sm text-gray-700">
-                             ${renderMarkdown(result.explanation)}
-                         </div>
-                         <p class="text-sm font-semibold text-gray-800 mt-4">Verification Sources (Google Search):</p>
-                         <ul class="list-disc list-inside space-y-1 mt-1 pl-2 text-sm">
-                             ${sourceHtml}
-                         </ul>
-                     </div>
-                 `;
-            } else if (activeVerifier !== 'news') {
-                 // Non-AI (link/number) explanation uses the standard explanation field
-                 extraContent = `<p class="mt-2 text-sm text-gray-700">${result.explanation}</p>`;
+                   extraContent = `
+                       <div class="mt-4 pt-4 border-t border-gray-200">
+                           <p class="text-sm font-semibold text-gray-800">${activeVerifier === 'link' ? 'AI Reputation Analysis' : 'AI Explanation & Evidence'}:</p>
+                           <div class="mt-2 p-3 rounded-lg bg-white border border-gray-100 prose text-sm text-gray-700">
+                               ${renderMarkdown(result.explanation)}
+                           </div>
+                           <p class="text-sm font-semibold text-gray-800 mt-4">Verification Sources (Google Search):</p>
+                           <ul class="list-disc list-inside space-y-1 mt-1 pl-2 text-sm">
+                               ${sourceHtml}
+                           </ul>
+                       </div>
+                     `;
+            } else {
+                // Non-AI (number) explanation uses the standard explanation field, allowing HTML links
+                extraContent = `<p class="mt-2 text-sm text-gray-700">${result.explanation}</p>`;
             }
 
             const cardHTML = `
@@ -562,10 +583,12 @@
             `;
             resultContainer.innerHTML = cardHTML;
         }
+        
         // Initialize the first tab state on page load
         document.addEventListener('DOMContentLoaded', () => {
             verifierTitle.textContent = verifiers['news'].title;
             verifierInput.placeholder = verifiers['news'].placeholder;
+            // Since default is 'news', virusTotalContainer will start hidden (via HTML class).
         });
     </script>
 </body>
