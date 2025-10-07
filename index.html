@@ -278,13 +278,15 @@
                 } catch (e) { 
                     console.error("VirusTotal Fetch Error:", e);
                     reportSource = 'VirusTotal API Connection Failed';
+                    // *** FIX: Updated explanation and advice to clearly state the CORS/Proxy requirement ***
                     return { 
                         status: 'inconclusive', 
-                        title: 'LINK CHECK INCONCLUSIVE (Connection Failed)', 
-                        explanation: `Failed to connect to the external link verification service. Network error: ${e.message}.`, 
-                        advice: 'If the link is unexpected, do not click it. Check the console for full error details.', 
+                        title: 'LINK CHECK INCONCLUSIVE (CORS/Proxy Needed)', 
+                        explanation: `The browser blocked the request (likely a CORS policy issue) or a network failure occurred. VirusTotal restricts direct front-end calls from public domains like GitHub Pages.`, 
+                        advice: 'To fix this on a public site, you must route the VirusTotal API call through a simple **backend proxy** (e.g., using a small serverless function) to bypass CORS restrictions.', 
                         source: 'External Security Check' 
                     };
+                    // *** END FIX ***
                 }
             }
 
