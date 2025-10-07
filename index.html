@@ -35,28 +35,26 @@
         .bg-yellow-50 { background-color: #fffbeb; }
 
         /* Custom style for source text area (to make AI text readable) */
-        .prose { max-width: 100%; }
+        .prose { 
+            max-width: 100%; 
+            color: #1f2937; /* gray-800 */
+        }
     </style>
 </head>
 <body class="bg-gray-50 font-sans text-gray-900">
 
-    <!-- Header -->
     <header class="bg-white shadow-sm sticky top-0 z-50 backdrop-blur-md bg-opacity-80">
         <nav class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center sm:justify-between items-center">
             <div class="flex items-center space-x-3">
-                <!-- Inline SVG for Shield Icon -->
                 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                 <h1 class="text-2xl font-bold text-gray-800">CYBER SHELL</h1>
             </div>
         </nav>
     </header>
 
-    <!-- Main Content -->
     <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <!-- Verifier Section -->
         <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg mb-8">
             <div class="w-full max-w-2xl mx-auto">
-                <!-- Verifier Tabs -->
                 <div id="verifier-tabs" class="flex justify-center space-x-2 sm:space-x-4 rounded-full bg-gray-100 p-2">
                     <button data-verifier="news" class="verifier-tab flex-1 px-3 py-2 text-sm sm:text-base font-semibold rounded-full transition-colors duration-300 flex items-center justify-center space-x-2 bg-blue-600 text-white shadow">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 20h-4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2H0v-2a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2zm0-4H0V4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12zM5 8h2m-2 4h2m-2 4h2"/></svg>
@@ -97,61 +95,94 @@
             </div>
         </div>
         
-        <!-- Knowledge Hub Section -->
         <div class="bg-white p-6 sm:p-8 rounded-xl shadow-lg">
             <div class="space-y-12">
                 <div>
                     <h3 class="text-2xl font-bold text-gray-800 mb-4">Before a Scam (Prevention Tips)</h3>
                     <ul class="space-y-3">
-                        <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-green-500 mt-1 flex-shrink-0"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="ml-2 text-gray-700">Verify news from multiple trusted sources before sharing.</span></li>
-                        <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-green-500 mt-1 flex-shrink-0"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="ml-2 text-gray-700">Never click on links from unknown or suspicious senders.</span></li>
-                        <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-green-500 mt-1 flex-shrink-0"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="ml-2 text-gray-700">Enable Two-Factor Authentication (2FA) on all your accounts.</span></li>
+                        <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-green-500 mt-1 flex-shrink-0"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="ml-2 text-gray-700">Verify news from **multiple trusted sources** before sharing.</span></li>
+                        <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-green-500 mt-1 flex-shrink-0"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="ml-2 text-gray-700">Never click on links from **unknown or suspicious senders**.</span></li>
+                        <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-green-500 mt-1 flex-shrink-0"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="ml-2 text-gray-700">Enable **Two-Factor Authentication (2FA)** on all your accounts.</span></li>
                     </ul>
                 </div>
                 <div>
                     <h3 class="text-2xl font-bold text-gray-800 mb-4">After a Scam (Action Steps)</h3>
                     <ul class="space-y-3">
-                        <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-red-500 mt-1 flex-shrink-0"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="ml-2 text-gray-700">Immediately block the number/sender and report it on the platform.</span></li>
-                        <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-red-500 mt-1 flex-shrink-0"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="ml-2 text-gray-700">Contact your bank if you've shared financial details.</span></li>
-                        <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-red-500 mt-1 flex-shrink-0"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="ml-2 text-gray-700">Report the incident on the National Cyber Crime Reporting Portal (cybercrime.gov.in).</span></li>
+                        <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-red-500 mt-1 flex-shrink-0"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="ml-2 text-gray-700">Immediately **block the number/sender** and report it on the platform.</span></li>
+                        <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-red-500 mt-1 flex-shrink-0"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="ml-2 text-gray-700">**Contact your bank** immediately if you've shared financial details.</span></li>
+                        <li class="flex items-start"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-red-500 mt-1 flex-shrink-0"><polyline points="9 18 15 12 9 6"></polyline></svg><span class="ml-2 text-gray-700">Report the incident to the appropriate **cyber crime portal** (e.g., cybercrime.gov.in).</span></li>
                     </ul>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- Footer -->
     <footer class="text-center py-6 text-sm text-gray-500">
         <p>&copy; 2025 CYBER SHELL. All Rights Reserved.</p>
         <p class="mt-1">Your AI-Powered Digital Guardian.</p>
     </footer>
 
     <script>
-        // --- API KEY DECLARATIONS (for MVP structure) ---
-        // NOTE: These are placeholders. Only the Gemini API is functional for news verification.
-        const NEWS_API_KEY = ""; 
-        const SAFE_BROWSING_API_KEY = ""; 
-        const VT_API_KEY = "";
-        const NUMVERIFY_API_KEY = "";
-
-        // Gemini API Setup (functional for News Verification)
-        const API_KEY = ""; // Automatically provided by the environment
+        // --- API KEY DECLARATIONS ---
+        // **IMPORTANT: For this to work on GitHub Pages, you MUST replace "" with your actual Gemini API key.**
+        // WARNING: Exposing the key client-side is a security risk for a production app, but necessary for this single-file deployment.
+        const API_KEY = ""; // <--- REPLACE THIS WITH YOUR GEMINI API KEY!
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${API_KEY}`;
+        
+        // VirusTotal Key (functional for Link verification)
+        const VT_API_KEY = "89fbf8b690896870ef1fa81a19f6ac9d8bbe9563dc54d950fa34a64ceac33f97"; 
+        
+        // NumVerify Key (functional for Number verification)
+        const NUMVERIFY_API_KEY = "1e8f0d3dce29513cc8db2e032bedc926"; 
         
         // --- VERIFIER FUNCTIONS ---
 
         // Helper function to render Markdown content from AI response
         function renderMarkdown(markdownText) {
-            // Simplified markdown to HTML conversion for this context
+            // Simplified markdown to HTML conversion
             let html = markdownText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Bold
             html = html.replace(/\*(.*?)\*/g, '<em>$1</em>'); // Italics
-            html = html.replace(/\n\n/g, '<br><br>'); // Paragraph breaks
-            html = html.replace(/^- /gm, '• '); // List items
-            return html;
+            
+            // Convert list-like hyphens (which can be a new paragraph in a markdown block) to HTML lists
+            let parts = html.split('\n').filter(p => p.trim() !== '');
+            let inList = false;
+            let finalHtml = '';
+
+            parts.forEach(part => {
+                if (part.startsWith('- ')) {
+                    if (!inList) {
+                        finalHtml += '<ul class="list-disc list-inside space-y-1 mt-1">';
+                        inList = true;
+                    }
+                    finalHtml += `<li>${part.substring(2)}</li>`;
+                } else {
+                    if (inList) {
+                        finalHtml += '</ul>';
+                        inList = false;
+                    }
+                    finalHtml += `<p>${part}</p>`;
+                }
+            });
+            if (inList) {
+                finalHtml += '</ul>';
+            }
+            
+            return finalHtml;
         }
 
-        // REWRITTEN: Now uses Gemini API with Google Search grounding
+        // News Verifier (Fixed to use client-side API call)
         async function checkFakeNewsAPI(claim) {
+            if (!API_KEY) {
+                 return {
+                    status: 'verified_false', 
+                    title: 'API KEY MISSING',
+                    explanation: 'The Gemini API key is not set in the JavaScript code. Please replace the placeholder API_KEY with your actual key to enable this feature.',
+                    advice: 'Find your Gemini API key and update the `API_KEY` constant in the script.',
+                    source: 'Cyber Shell System',
+                    sources: []
+                };
+            }
+
             const systemPrompt = `You are a world-class, objective fact-checking AI. Your task is to verify the factual correctness of the user's claim by using the provided Google Search results as your evidence. 
                 Based ONLY on the search results, provide a final, short verdict (e.g., 'TRUE', 'FALSE', 'MISLEADING', or 'UNVERIFIABLE'). 
                 Then, provide a brief (2-3 sentence) explanation of your finding and quote the strongest piece of evidence or contradiction from the search results.
@@ -161,12 +192,13 @@
 
             const payload = {
                 contents: [{ parts: [{ text: userQuery }] }],
-                tools: [{ "google_search": {} }],
-                systemInstruction: { parts: [{ text: systemPrompt }] },
+                tools: [{ google_search: {} }],
+                config: {
+                    systemInstruction: systemPrompt
+                }
             };
 
             try {
-                // Use the existing fetchWithRetry function for the Gemini API call
                 const response = await fetchWithRetry(API_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -180,16 +212,15 @@
                      return {
                          status: 'inconclusive',
                          title: 'AI VERIFICATION FAILED',
-                         explanation: 'The AI service could not produce a definitive verdict for the claim, or the response structure was invalid.',
-                         advice: 'Try simplifying the headline or check the network status.',
-                         source: '', // Empty source
+                         explanation: `The AI service could not produce a definitive verdict. This could be due to a rate limit or an ambiguous query. Received error: ${result.error?.message || 'None'}`,
+                         advice: 'Try simplifying the headline or check your API key quota.',
+                         source: 'Gemini API', 
                          sources: []
                      };
                 }
 
                 const aiText = candidate.content.parts[0].text;
                 
-                // Extract sources
                 let sources = [];
                 const groundingMetadata = candidate.groundingMetadata;
                 if (groundingMetadata && groundingMetadata.groundingAttributions) {
@@ -201,64 +232,179 @@
                         .filter(source => source.uri && source.title);
                 }
 
-                // Determine status based on AI's textual verdict
-                // This logic ensures Green for TRUE/CORRECT, Red for FALSE/MISLEADING/INCORRECT, and Yellow otherwise.
-                let status = 'inconclusive'; // Default to Yellow/Warning
-                
+                let status = 'inconclusive'; 
                 const upperText = aiText.toUpperCase();
 
-                if (upperText.includes('TRUE') || upperText.includes('CORRECT')) {
+                if (upperText.includes('TRUE') || upperText.includes('CORRECT') && !upperText.includes('MOSTLY FALSE')) {
                     status = 'verified_true'; // Green/Safe
-                } else if (upperText.includes('FALSE') || upperText.includes('MISLEADING') || upperText.includes('INCORRECT')) {
+                } else if (upperText.includes('FALSE') || upperText.includes('INCORRECT') || upperText.includes('MISLEADING')) {
                     status = 'verified_false'; // Red/Danger
+                } else if (upperText.includes('UNVERIFIABLE') || upperText.includes('INCONCLUSIVE')) {
+                    status = 'inconclusive'; // Yellow/Warning
                 }
                 
-                // Note: 'UNVERIFIABLE' and anything that isn't clearly True or False remains 'inconclusive' (Yellow/Warning)
-
-                // Return the structured result format used by renderResultCard
                 return {
                     status: status,
                     title: 'AI FACT-CHECK VERDICT',
-                    explanation: aiText, // Full AI markdown text
+                    explanation: aiText,
                     advice: 'Review the provided source links below before making a final judgment or sharing this information.',
-                    source: '', // <<<<< CHANGED TO EMPTY STRING >>>>>
-                    sources: sources // Pass sources for custom rendering
+                    source: 'Gemini 2.5 Flash',
+                    sources: sources
                 };
 
             } catch (e) {
                 console.error("Gemini API Error:", e);
                 return {
-                     status: 'verified_false', // Signal critical error with RED color for connection failures
+                     status: 'verified_false', 
                      title: 'VERIFICATION API CONNECTION ERROR',
-                     explanation: `Failed to connect to the fact-checking service. This might be due to a rate limit, or a network issue. Details: ${e.message}`,
-                     advice: 'If this error persists, try again in a few minutes or check your connection.',
-                     source: '', // Empty source
+                     explanation: `Failed to connect to the fact-checking service. This might be due to a rate limit, network issue, or invalid API key. Details: ${e.message}`,
+                     advice: 'If this error persists, check your network connection and ensure your Gemini API key is correct.',
+                     source: 'Cyber Shell System',
                      sources: []
-                };
+                 };
             }
         }
 
 
-        // UPDATED: Now returns a key error gracefully
+        // Link Checker (Uses VirusTotal with new key + local checks)
         async function checkLinkAPI(url) {
+            const isShortened = /(bit\.ly|tinyurl\.com|t\.co|goo\.gl|cutt\.ly|rebrand\.ly|is\.gd|s\.id|shorte\.st)/i.test(url);
+            
+            if (isShortened) {
+                 return { 
+                    status: 'inconclusive', 
+                    title: 'URL SHORTENER DETECTED', 
+                    explanation: 'The link uses a URL shortening service (like bit.ly or t.co), which hides the true destination. Exercise caution before clicking.', 
+                    advice: 'Exercise extreme caution. Do not click unless you are absolutely sure of the source. Use a link expander service first.', 
+                    source: 'Local Client Check' 
+                };
+            }
+            
+            let maliciousCount = 0;
+            let reportSource = 'Local/Basic Check';
+
+            if (VT_API_KEY) {
+                try {
+                    // VirusTotal Check
+                    const urlToEncode = url.includes('://') ? url : `http://${url}`;
+                    const vtUrlId = btoa(urlToEncode).replace(/\//g, '_').replace(/\+/g, '-').replace(/=/g, ''); 
+                    
+                    const vtRes = await fetch(`https://www.virustotal.com/api/v3/urls/${vtUrlId}`, { 
+                        headers: { 'x-apikey': VT_API_KEY } 
+                    });
+
+                    if (vtRes.ok) {
+                        const vtData = await vtRes.json();
+                        if (vtData.data?.attributes?.last_analysis_stats) {
+                           maliciousCount = vtData.data.attributes.last_analysis_stats.malicious || 0;
+                           reportSource = 'VirusTotal API';
+                        }
+                    } else if (vtRes.status === 404) {
+                        maliciousCount = 0;
+                        reportSource = 'VirusTotal API (Unreported)';
+                    } else {
+                        // Handle rate limiting or other API errors
+                        const errorData = await vtRes.json().catch(() => ({ error: { message: 'Unknown API error body.' } }));
+                        reportSource = `VirusTotal API Error (${vtRes.status}): ${errorData.error?.message || 'Check key/quota.'}`;
+                    }
+                } catch (e) { 
+                    console.error("VirusTotal Fetch Error:", e);
+                    reportSource = 'VirusTotal API Connection Failed';
+                }
+            }
+
+            if (maliciousCount > 0) {
+                 return { 
+                    status: 'verified_false', 
+                    title: `MALICIOUS LINK DETECTED (${maliciousCount} Flags)`, 
+                    explanation: `This URL has been flagged as malicious by **${maliciousCount} security vendors**. (${reportSource}).`, 
+                    advice: '**DO NOT visit this link** under any circumstances. Block the sender immediately.', 
+                    source: 'External Security Check' 
+                };
+            }
+
+            // Check if the VT check failed or was inconclusive, but the URL looks non-standard/suspicious
+            const isSuspiciousDomain = !/\./.test(url.split('/')[2]) || !url.includes('https');
+            
+            if (reportSource === 'VirusTotal API (Unreported)' && isSuspiciousDomain) {
+                return { 
+                    status: 'inconclusive', 
+                    title: 'UNREPORTED AND UNSECURED URL', 
+                    explanation: `This URL is not in the VirusTotal database, does not use HTTPS, or has an unusual domain structure.`, 
+                    advice: 'Be extremely careful. Manually verify the domain name is correct and look for a lock icon next to the URL.', 
+                    source: 'External Security/Local Check' 
+                };
+            }
+
             return { 
-                status: 'inconclusive', 
-                title: 'KEY REQUIRED: LINK CHECKER INACTIVE', 
-                explanation: 'This feature is currently using a placeholder key for the Google Safe Browsing and VirusTotal APIs. Please obtain valid API keys for this feature to work.', 
-                advice: 'Until a valid key is provided, assume all links are high risk.', 
-                source: 'External Security APIs' 
+                status: 'verified_true', 
+                title: 'URL APPEARS SAFE (No Threat Detected)', 
+                explanation: `No malicious or known phishing activity was detected in the last scan. (${reportSource}).`, 
+                advice: 'The link appears safe, but always be cautious of unexpected downloads or requests for personal data.', 
+                source: 'External Security Check' 
             };
         }
 
-        // UPDATED: Now returns a key error gracefully
+        // Number Checker (Fully Functional with NumVerify API)
         async function checkNumberAPI(number) {
-            return { 
-                status: 'inconclusive', 
-                title: 'KEY REQUIRED: NUMBER CHECKER INACTIVE', 
-                explanation: 'This feature is currently using a placeholder key for the numverify API. Please obtain a valid API key for this feature to work.', 
-                advice: 'Do not interact with the number until you can verify its validity.', 
-                source: 'Numverify API' 
-            };
+            const cleanedNumber = number.replace(/[\s\(\)-]/g, '');
+
+            try {
+                // NumVerify API requires access_key
+                const response = await fetch(`https://apilayer.net/api/validate?access_key=${NUMVERIFY_API_KEY}&number=${cleanedNumber}`);
+                const data = await response.json();
+                
+                if (data.success === false) {
+                     return { 
+                        status: 'inconclusive', 
+                        title: 'VERIFICATION API ERROR', 
+                        explanation: `The external number verification service returned an error. This may be due to a rate limit or an invalid API key.`, 
+                        advice: 'This feature may be temporarily unavailable. Proceed with caution.', 
+                        source: 'NumVerify API' 
+                    };
+                }
+
+                if (data.valid === true) {
+                    const isVoIP = data.line_type?.toLowerCase() === 'voip';
+                    
+                    if (isVoIP) {
+                         return { 
+                            status: 'inconclusive', 
+                            title: 'VALID BUT HIGH-RISK (VOIP) NUMBER', 
+                            explanation: `Valid number from ${data.country_name || 'an unknown region'}, but uses a **Voice over IP (VoIP)** line type. VoIP numbers are easily spoofed and commonly used for scams.`, 
+                            advice: 'Treat calls from this number with **skepticism**. Be extremely wary of sharing personal information.', 
+                            source: 'NumVerify API' 
+                        };
+                    }
+
+                    return { 
+                        status: 'verified_true', 
+                        title: 'VALID & LOW-RISK NUMBER', 
+                        explanation: `Valid phone number from **${data.country_name || 'an unknown region'}**, carrier: **${data.carrier || 'Unknown'}**, line type: **${data.line_type || 'Unknown'}**.`, 
+                        advice: 'The number format is verified. However, always be cautious of unsolicited calls and never give out personal details.', 
+                        source: 'NumVerify API' 
+                    };
+
+                } else {
+                    return { 
+                        status: 'verified_false', 
+                        title: 'INVALID OR FAKE NUMBER', 
+                        explanation: `This number is not a valid, recognized, or active telephone number in the country's system.`, 
+                        advice: '**Do not answer or call back.** Block this number immediately as it is likely fraudulent/non-existent.', 
+                        source: 'NumVerify API' 
+                    };
+                }
+
+            } catch (e) {
+                console.error("NumVerify Fetch Error:", e);
+                return { 
+                    status: 'verified_false', 
+                    title: 'ANALYSIS FAILED', 
+                    explanation: `Could not connect to the number verification service. Network error: ${e.message}`, 
+                    advice: 'If unsure, it is safest not to interact with the number.', 
+                    source: 'Cyber Shell System' 
+                };
+            }
         }
         
         // --- CORE APPLICATION LOGIC ---
@@ -269,21 +415,22 @@
                 placeholder: 'Enter a news headline or claim...',
                 api: checkFakeNewsAPI,
                 validation: (input) => input.split(' ').filter(word => word.length > 0).length >= 2 && input.length <= 500,
-                errorMessage: 'Please enter a claim between 2 and 500 words for the AI check.'
+                errorMessage: 'Please enter a claim with at least 2 words (max 500 characters) for the AI check.'
             },
             link: {
                 title: 'Phishing Link Checker',
-                placeholder: 'Paste a suspicious URL (e.g., example.com)...',
+                placeholder: 'Paste a suspicious URL (e.g., https://malicious.link)...',
                 api: checkLinkAPI,
-                validation: (input) => input.length > 5,
-                errorMessage: 'Please enter a valid URL.'
+                // Less strict validation for live testing: allows anything that looks like a path or domain
+                validation: (input) => input.length > 5 && (input.includes('.') || input.includes('/')),
+                errorMessage: 'Please enter a valid-looking URL (must contain a dot or a slash and be over 5 characters).'
             },
             number: {
                 title: 'Scam Number Checker',
                 placeholder: 'Enter a phone number with country code (e.g., +15551234567)...',
                 api: checkNumberAPI,
-                validation: (input) => input.length > 7,
-                errorMessage: 'Please enter a valid phone number format.'
+                validation: (input) => input.length > 7 && /^\+?[\d\s\(\)-]+$/.test(input),
+                errorMessage: 'Please enter a valid phone number format (must be over 7 characters and contain digits, optionally starting with a +).'
             }
         };
         
@@ -300,7 +447,7 @@
 
         // Utility function for exponential backoff retry logic (kept for robustness)
         async function fetchWithRetry(url, options, maxRetries = 5) {
-            for (let i = 0; i < maxRetries; i++) {
+             for (let i = 0; i < maxRetries; i++) {
                 try {
                     const response = await fetch(url, options);
                     if (response.status !== 429 && response.status < 500) {
@@ -398,25 +545,26 @@
             const resultStyle = statusMap[result.status] || 'warning';
             const config = styleConfigs[resultStyle];
             
-            // Define the Source Line, hiding it if the source string is empty or undefined
+            // Define the Source Line
             const sourceLine = result.source && result.source.length > 0 
-                ? `<p class="mt-4 text-xs text-gray-500">Source: ${result.source}</p>`
+                ? `<p class="mt-4 text-xs text-gray-500">Service: ${result.source}</p>`
                 : '';
 
             // Check if the result includes AI sources (only for the 'news' verifier)
             let extraContent = '';
-            if (activeVerifier === 'news' && result.sources) {
+            if (activeVerifier === 'news') {
+                 // For News, the explanation becomes the primary content 
                  const sourceHtml = result.sources.length > 0
                     ? result.sources.map(s => 
                         `<li class="truncate text-xs"><a href="${s.uri}" target="_blank" class="text-blue-600 hover:underline">${s.title}</a></li>`
                       ).join('')
-                    : '<li class="text-xs text-gray-500">The AI did not cite specific public web sources.</li>';
+                    : '<li class="text-xs text-gray-500">No specific public web sources cited by the AI.</li>';
                 
-                extraContent = `
+                 extraContent = `
                     <div class="mt-4 pt-4 border-t border-gray-200">
-                        <p class="text-sm font-semibold text-gray-800">AI Explanation & Evidence:</p>
+                        <p class="text-sm font-semibold text-gray-800">Explanation & Evidence:</p>
                         <div class="mt-2 p-3 rounded-lg bg-white border border-gray-100 prose text-sm text-gray-700">
-                           ${renderMarkdown(result.explanation)}
+                            ${renderMarkdown(result.explanation)}
                         </div>
                         <p class="text-sm font-semibold text-gray-800 mt-4">Verification Sources (Google Search):</p>
                         <ul class="list-disc list-inside space-y-1 mt-1 pl-2 text-sm">
@@ -424,7 +572,7 @@
                         </ul>
                     </div>
                 `;
-            } else if (activeVerifier !== 'news') {
+            } else {
                  // Non-AI (link/number) explanation uses the standard explanation field
                  extraContent = `<p class="mt-2 text-sm text-gray-700">${result.explanation}</p>`;
             }
@@ -453,6 +601,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             verifierTitle.textContent = verifiers['news'].title;
             verifierInput.placeholder = verifiers['news'].placeholder;
+            // Ensure the initial tab is correctly styled
+            const initialTab = document.querySelector('.verifier-tab[data-verifier="news"]');
+            if (initialTab) initialTab.click();
         });
     </script>
 </body>
